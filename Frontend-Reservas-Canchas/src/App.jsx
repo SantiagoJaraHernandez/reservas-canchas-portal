@@ -1,10 +1,9 @@
-
-
+import UnderConstruccion from "./pages/UnderConstruction"
 function App() {
 
   return (
     <>
-    <h1>hola</h1>
+      <UnderConstruccion />
     </>
   )
 }
