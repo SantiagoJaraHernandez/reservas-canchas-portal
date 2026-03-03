@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 
 function MainLayout({ children }) {
   return (
-    <div className="bg-background-dark min-h-screen text-slate-100">
+    <div className="bg-background-dark min-h-screen text-slate-100 relative">
       <div
         className="relative min-h-screen w-full flex flex-col overflow-x-hidden bg-cover bg-fixed bg-center"
         style={{

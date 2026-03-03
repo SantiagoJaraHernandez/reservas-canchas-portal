@@ -2,7 +2,7 @@ import { useState } from "react";
 import CampoForm from "./CampoForm";
 import BotonForm from "./BotonForm";
 import Modal from "./Modal";
-import { crearReserva } from "../../services/reservaServices";
+import { crearReserva, getReservas } from "../../services/reservaServices";
 
 function ReservasForm() {
     const [formData, setFormData] = useState({
@@ -38,20 +38,31 @@ function ReservasForm() {
         };
 
         try {
+            const reservas = await getReservas();
+
+            const existe = reservas.some(r =>
+                r.idCancha === reserva.idCancha &&
+                r.fecha === reserva.fecha &&
+                r.horaInicio === reserva.horaInicio &&
+                r.horaFin === reserva.horaFin
+            );
+
+            if (existe) {
+                setModal({ show: true, type: "error", message: "La reserva ya existe" });
+                return;
+            }
+
             await crearReserva(reserva);
             setModal({ show: true, type: "success", message: "Reserva creada con éxito" });
             setFormData({ idUsuario: "", idCancha: "", fecha: "", horaInicio: "", horaFin: "" });
         } catch (error) {
-            const mensaje = error.response?.status === 409
-                ? "La reserva ya existe"
-                : "Error al crear la reserva";
-            setModal({ show: true, type: "error", message: mensaje });
+            setModal({ show: true, type: "error", message: "Error al crear la reserva" });
         }
     };
 
     return (
         <>
-            <form onSubmit={handleSubmit} className="space-y-6 flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="space-y-6 flex flex-col gap-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {["idUsuario", "idCancha", "fecha", "horaInicio", "horaFin"].map((campo) => (
                         <CampoForm
@@ -66,9 +77,7 @@ function ReservasForm() {
                     ))}
                 </div>
                 <div className="pt-6 flex justify-center">
-                    <BotonForm tipo="submit" icono="task_alt">
-                        Confirmar Reserva
-                    </BotonForm>
+                    <BotonForm texto={'Reserva'} type="submit" />
                 </div>
             </form>
 
