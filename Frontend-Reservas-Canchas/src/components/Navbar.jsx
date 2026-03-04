@@ -4,7 +4,7 @@ function Navbar() {
             <a href="#" className=" text-md font-medium text-white hover:text-[#13ec5b] transition-colors">
                 Canchas
             </a>
-            <a href="#" className="text-white text-md font-medium hover:text-[#13ec5b] transition-colors">
+            <a href="#" className="text-black text-md font-medium hover:text-[#13ec5b] transition-colors">
                 Mis Reservas
             </a>
         </nav>
