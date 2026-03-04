@@ -1,9 +1,12 @@
-import UnderConstruccion from "./pages/UnderConstruction"
+import MainLayout from "./pages/MainLayout";
+import ReservationPage from "./pages/ReservationPage";
 function App() {
 
   return (
     <>
-      <UnderConstruccion />
+    <MainLayout>
+      <ReservationPage/>
+    </MainLayout>
     </>
   )
 }
