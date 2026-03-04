@@ -8,7 +8,7 @@ function Header() {
         <div className="p-2 bg-primary rounded-lg flex items-center justify-center text-background-dark">
           <span className="material-symbols-outlined font-bold">sports_soccer</span>
         </div>
-        <h2 className="text-slate-100 text-xl font-bold tracking-tight">PitchBooker</h2>
+        <h2 className="text-slate-100 text-xl font-bold tracking-tight">Reservapp</h2>
       </div>
 
       <div className="flex items-center gap-8">
