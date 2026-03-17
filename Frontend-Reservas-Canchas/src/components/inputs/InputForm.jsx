@@ -1,4 +1,4 @@
-import Icon from "../ui/Icon";
+import Icon from "../../ui/Icon";
 function InputForm({ type, placeholder, texto, className = "", icono,valor, readOnly = false}) {
     return (
         <div className={`${className} flex flex-col transition-all duration-300 gap-1`}>

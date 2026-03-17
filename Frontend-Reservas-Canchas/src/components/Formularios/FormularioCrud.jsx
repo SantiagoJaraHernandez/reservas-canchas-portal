@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import InputForm from "../inputs/InputForm";
-import BtnAccion from "../TablaReservas/BtnAccion";
-import BtnAggReserva from "../Botones/BtnAggReserva";
-import Icon from "../ui/Icon";
+import BtnAccion from "../Botones/ButtonAccion";
+import BtnAggReserva from "../Botones/ButtonReservation";
+import Icon from "../../ui/Icon";
 
 function Formulario({ textoBoton, container }) {
     const inputs = [

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { reservasData } from "../../data/reservaData";
-import StatusBadges from "./StatusBadge";
-import BtnAccion from "./BtnAccion";
+import StatusBadges from "./StatusBadges";
+import BtnAccion from "../Botones/ButtonAccion";
 function TablaReservas() {
     const itemsTable = ["ID Reserva", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
 

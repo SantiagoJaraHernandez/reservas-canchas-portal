@@ -1,4 +1,5 @@
-
+import { Outlet } from "react-router-dom";
+import Navbar from "../Navbar/Navbar";
 function MainLayout({ children }) {
     return (
         <div className="bg-bg-app min-h-screen font-lexend overflow-hidden relative">

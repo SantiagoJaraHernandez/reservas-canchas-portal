@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import StatCard from "../components/statCard/StatCard";
-import Titulo from "../components/Textos/Titulo";
-import SubTitulo from "../components/Textos/SubTitulo";
-import BtnAggReserva from "../components/Botones/BtnAggReserva";
-import TablaReservas from "../components/TablaReservas/TablaReservas";
+import Titulo from "../components/texts/Title";
+import SubTitulo from "../components/texts/SubTitle";
+import BtnAggReserva from "../components/Botones/ButtonReservation";
+import TablaReservas from "../components/TableReservation/TableReservation";
 
 function Reservations() {
     const itemsReserva = [

@@ -1,9 +1,9 @@
 
-import Titulo from "../components/Textos/Titulo";
-import SubTitulo from "../components/Textos/SubTitulo";
-import Formulario from "../components/formulario/Formulario";
-import FormularioDelete from "../components/formulario/FormularioDelete";
-import Icon from "../components/ui/Icon";
+import Titulo from "../components/texts/Title";
+import SubTitulo from "../components/texts/SubTitle";
+import Formulario from "../components/Formularios/FormularioCrud";
+import FormularioDelete from "../components/Formularios/FormularioDelete";
+import Icon from "../ui/Icon";
 
 
 function FormularioReservas({ titulo, subTitulo, textoBoton, icono, className = "", styleIcon, modo, container }) {

@@ -1,4 +1,4 @@
-import Icon from "../ui/Icon";
+import Icon from "../../ui/Icon";
 function BtnAccion({accion, icono, className = "", texto}) {
     return(
         <button className={`${className} cursor-pointer text-gray-400`} onClick={accion}>

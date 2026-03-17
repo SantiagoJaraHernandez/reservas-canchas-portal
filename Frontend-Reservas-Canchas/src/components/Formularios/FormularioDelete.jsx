@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import InputForm from "../inputs/InputForm";
-import BtnAggReserva from "../Botones/BtnAggReserva";
-import BtnAccion from "../TablaReservas/BtnAccion";
-import Icon from "../ui/Icon";
+import BtnAggReserva from "../Botones/ButtonReservation";
+import BtnAccion from "../Botones/ButtonAccion";
+import Icon from "../../ui/Icon";
 
 function FormularioDelete({ textoBoton, container }) {
     const inputs = [

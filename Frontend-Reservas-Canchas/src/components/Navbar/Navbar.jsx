@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import LinkNav from "./LinkNav";
-import Icon from "../ui/Icon";
+import Icon from "../../ui/Icon";
 import UserAvatar from "./UserAvatar";
 import { useState } from "react";
 

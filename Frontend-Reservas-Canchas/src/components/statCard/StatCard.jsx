@@ -1,4 +1,4 @@
-import Icon from "../ui/Icon";
+import Icon from "../../ui/Icon";
 function StatCard({ icono, title, valor }) {
     return (
         <div className="flex shadow-card bg-white gap-2 rounded-card p-5 items-center px-4 ">

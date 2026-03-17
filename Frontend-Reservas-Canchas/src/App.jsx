@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import MainLayout from "./components/dashboard/MainLayout"
+import MainLayout from "./components/Main/MainLayout";
 import Reservations from "./pages/Reservations";
-import FormularioReservas from "./pages/FormularioReservas";
+import FormularioReservas from "./pages/ReservationCrud";
 
 function App() {
   return (
