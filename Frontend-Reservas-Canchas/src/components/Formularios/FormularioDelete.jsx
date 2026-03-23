@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import InputForm from "../inputs/InputForm";
 import BtnAggReserva from "../Botones/ButtonReservation";
 import BtnAccion from "../Botones/ButtonAccion";
-import Icon from "../ui/Icon";
+import Icon from "../../ui/Icon";
 import { inputs } from "../../utils/FormInputsDelete";
 import { useFormDelete } from "../../hooks/useFormDelete";
 
