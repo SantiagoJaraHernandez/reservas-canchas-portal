@@ -12,11 +12,10 @@ function FormularioDelete({ textoBoton, container, onSubmitReserva, onExito }) {
     const location = useLocation();
     const reserva = location.state?.reserva ?? null;
 
-    const { enviando, errorApi, handleDelete } = useFormDelete(reserva,onSubmitReserva);
-
+    const { enviando, errorApi, handleDelete } = useFormDelete(reserva, onSubmitReserva);
     async function onFormSubmit(e) {
         const resultado = await handleDelete(e);
-        if(resultado.ok) {
+        if (resultado.ok) {
             onExito();
         }
     }
