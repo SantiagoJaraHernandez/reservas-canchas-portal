@@ -1,6 +1,6 @@
-import Icon from "../ui/Icon";
-import BtnAccion from "../TablaReservas/BtnAccion";
-import BtnAggReserva from "../Botones/BtnAggReserva";
+import Icon from "../../ui/Icon";
+import BtnAccion from "../Botones/ButtonAccion";
+import BtnAggReserva from "../Botones/ButtonReservation";
 
 
 function ModalConfirmacion({ icono, title, subTitle, accion, textoBtn, accionTwo, textoBtnTwo, iconoBtn, containerIcono, styleIcono, open, styleBtn, styleBg }) {
