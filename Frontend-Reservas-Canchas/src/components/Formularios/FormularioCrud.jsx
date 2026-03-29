@@ -16,6 +16,7 @@ function FormularioCrud({ textoBoton, container, onSubmitReserva, accion, onExit
     const { formData, handleChange, handleSubmit, enviando, errores, errorApi } = useFormReservas(reserva, onSubmitReserva);
 
     async function onFormSubmit(e) {
+        e.preventDefault();
         const resultado = await handleSubmit(e);
         if (resultado.ok) {
             onExito();

@@ -14,6 +14,7 @@ function FormularioDelete({ textoBoton, container, onSubmitReserva, onExito }) {
 
     const { enviando, errorApi, handleDelete } = useFormDelete(reserva, onSubmitReserva);
     async function onFormSubmit(e) {
+        e.preventDefault();
         const resultado = await handleDelete(e);
         if (resultado.ok) {
             onExito();
