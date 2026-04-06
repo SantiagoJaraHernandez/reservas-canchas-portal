@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/Main/MainLayout";
 import Reservations from "./pages/Reservations";
 import FormularioReservas from "./pages/ReservationCrud";
+import PageAuth from "./pages/PageAuth";
 
 function App() {
   return (
@@ -34,13 +35,16 @@ function App() {
               subTitulo={"¿Estás seguro de que deseas eliminar esta reserva? Esta acción no se puede deshacer."}
               textoBoton={"Eliminar Reserva"}
               modo="eliminar"
-              styleIcon = "w-20 h-20 bg-red-200 rounded-full text-red-500"
+              styleIcon="w-20 h-20 bg-red-200 rounded-full text-red-500"
               icono={"warning"}
               container={"bg-red-100 rounded-card"}
               className="items-center py-2"
             />}
           />
         </Route>
+        <Route path="/register" element={
+          <PageAuth />
+        } />
       </Routes>
     </Router>
   )
