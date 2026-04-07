@@ -43,7 +43,10 @@ function App() {
           />
         </Route>
         <Route path="/register" element={
-          <PageAuth />
+          <PageAuth modo={"register"} />
+        } />
+        <Route path="/login" element={
+          <PageAuth modo={"login"} />
         } />
       </Routes>
     </Router>

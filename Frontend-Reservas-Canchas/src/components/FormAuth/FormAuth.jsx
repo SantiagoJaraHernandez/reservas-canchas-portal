@@ -6,6 +6,8 @@ import BtnAggReserva from "../Botones/ButtonReservation";
 
 
 function FormAuth({ title, subTtitle, fields, terms, className = "", textButton }) {
+
+
     return (
         <form action="" className={`flex flex-col bg-white max-w-100 w-full px-8 py-4 rounded-2xl shadow-sm shadow-primary/80 gap-10 relative overflow-hidden ${className}`}>
             <div className="clip-top bg-primary h-100 w-full absolute inset-0 "></div>
@@ -27,7 +29,8 @@ function FormAuth({ title, subTtitle, fields, terms, className = "", textButton 
                 ))}
                 <div className="flex text-[12px] py-2 gap-2">
                     <input type="checkbox" name="" id="" className="cursor-pointer" />
-                    <p className="text-slate-50">{terms} Acepto los <span className="text-primary font-bold">Términos de Servicio </span>y la <span className="text-primary font-bold">Política de Privacidad </span> de SoccerField Manager.</p>
+                    {terms === "login" && <p></p>}
+                    {terms === "registrer" && <p className="text-slate-50">¿No tienes Cuenta? <span className="text-primary font-bold border-b">Crea Una Cuenta</span></p>}
                 </div>
             </div>
             <div className="flex font-bold">
