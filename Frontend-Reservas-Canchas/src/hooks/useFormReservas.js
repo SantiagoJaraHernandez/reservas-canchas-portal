@@ -1,59 +1,69 @@
 import { useState } from "react";
 
 export function useFormReservas(reserva, onSubmitReserva) {
+  const [formData, setFormData] = useState({
+    id: reserva?.id ?? null,
+    idCancha: reserva?.idCancha ?? "",
+    fecha: reserva?.fecha ?? "",
+    horaInicio: reserva?.horaInicio ?? "",
+    horaFin: reserva?.horaFin ?? "",
+  });
 
+  const [errores, setErrores] = useState({});
+  const [enviando, setEnviando] = useState(false);
+  const [errorApi, setErrorApi] = useState("");
 
-    const [formData, setFormData] = useState({
-        id: reserva?.id ?? null,
-        idUsuario: reserva?.idUsuario ?? "",
-        idCancha: reserva?.idCancha ?? "",
-        fecha: reserva?.fecha ?? "",
-        horaInicio: reserva?.horaInicio ?? "",
-        horaFin: reserva?.horaFin ?? ""
-    });
+  function validar() {
+    const nuevosErrores = {};
 
-    const [errores, setErrores] = useState({});
-    const [enviando, setEnviando] = useState(false);
-    const [errorApi, setErrorApi] = useState("");
+    if (!formData.idCancha) nuevosErrores.idCancha = "Debes seleccionar una cancha";
+    if (!formData.fecha) nuevosErrores.fecha = "La fecha es obligatoria";
+    if (!formData.horaInicio) nuevosErrores.horaInicio = "Hora inicio requerida";
+    if (!formData.horaFin) nuevosErrores.horaFin = "Hora fin requerida";
 
-    function validar() {
-        const nuevosErrores = {};
-        if (!formData.idUsuario) nuevosErrores.idUsuario = "El Usuario Es Requerido";
-        if (!formData.idCancha) nuevosErrores.idCancha = "La cancha es requerida";
-        if (!formData.fecha) nuevosErrores.fecha = "La Fecha Es Obligatoria";
-        if (!formData.horaInicio) nuevosErrores.horaInicio = "Hora Inicio requerida";
-        if (!formData.horaFin) nuevosErrores.horaFin = "Hora Fin es Requerida";
-        if (formData.horaFin <= formData.horaInicio) {
-            nuevosErrores.horaFin = "La hora de fin debe ser despues de la hora inicio";
-        }
-        return nuevosErrores;
+    if (
+      formData.horaInicio &&
+      formData.horaFin &&
+      formData.horaFin <= formData.horaInicio
+    ) {
+      nuevosErrores.horaFin =
+        "La hora de fin debe ser posterior a la hora de inicio";
     }
 
-    function handleChange(campo, valor) {
-        setFormData((prev) => ({ ...prev, [campo]: valor }));
-        setErrores((prev) => ({ ...prev, [campo]: "" }));
+    return nuevosErrores;
+  }
+
+  function handleChange(campo, valor) {
+    setFormData((prev) => ({ ...prev, [campo]: valor }));
+    setErrores((prev) => ({ ...prev, [campo]: "" }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErrorApi("");
+
+    const erroresEncontrados = validar();
+    if (Object.keys(erroresEncontrados).length > 0) {
+      setErrores(erroresEncontrados);
+      return { ok: false };
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        setErrorApi("");
+    setEnviando(true);
 
-        const erroresEncontrados = validar();
-        if (Object.keys(erroresEncontrados).length > 0) {
-            setErrores(erroresEncontrados);
-            return { ok: false }
-        }
+    const payload = {
+      ...formData,
+      idCancha: Number(formData.idCancha),
+    };
 
-        setEnviando(true);
-        const resultado = await onSubmitReserva(formData);
-        setEnviando(false);
+    const resultado = await onSubmitReserva(payload);
+    setEnviando(false);
 
-        if (!resultado.ok) {
-            setErrorApi(resultado.mensaje);
-        }
-        return resultado;
-
+    if (!resultado.ok) {
+      setErrorApi(resultado.mensaje);
     }
 
-    return { formData, handleChange, errores, errorApi, enviando, handleSubmit }
+    return resultado;
+  }
+
+  return { formData, handleChange, errores, errorApi, enviando, handleSubmit };
 }

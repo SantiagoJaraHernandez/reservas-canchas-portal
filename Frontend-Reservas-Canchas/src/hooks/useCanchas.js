@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
 import {
-  getReservas,
-  createReserva,
-  updateReserva,
-  deleteReserva,
-} from "../services/reservaServices";
+  getCanchas,
+  createCancha,
+  updateCancha,
+  deleteCancha,
+} from "../services/canchaServices";
 
-function useReservas() {
-  const [reservas, setReservas] = useState([]);
+function useCanchas() {
+  const [canchas, setCanchas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function fetchReservas() {
+  async function fetchCanchas() {
     try {
       setLoading(true);
       setError("");
-      const data = await getReservas();
-      setReservas(data);
+      const data = await getCanchas();
+      setCanchas(data);
     } catch (err) {
       const mensaje =
         err.response?.data?.message ||
         err.response?.data?.mensaje ||
-        "No fue posible cargar las reservas";
+        "No fue posible cargar las canchas";
       setError(mensaje);
     } finally {
       setLoading(false);
@@ -29,13 +29,13 @@ function useReservas() {
   }
 
   useEffect(() => {
-    fetchReservas();
+    fetchCanchas();
   }, []);
 
-  async function agregarReserva(payload) {
+  async function agregarCancha(payload) {
     try {
-      const nueva = await createReserva(payload);
-      setReservas((prev) => [...prev, nueva]);
+      const nueva = await createCancha(payload);
+      setCanchas((prev) => [...prev, nueva]);
       return { ok: true, data: nueva };
     } catch (err) {
       return {
@@ -43,15 +43,15 @@ function useReservas() {
         mensaje:
           err.response?.data?.message ||
           err.response?.data?.mensaje ||
-          "Error al crear la reserva",
+          "Error al crear la cancha",
       };
     }
   }
 
-  async function editarReserva(id, payload) {
+  async function editarCancha(id, payload) {
     try {
-      const actualizada = await updateReserva(id, payload);
-      setReservas((prev) =>
+      const actualizada = await updateCancha(id, payload);
+      setCanchas((prev) =>
         prev.map((item) => (item.id === id ? actualizada : item))
       );
       return { ok: true, data: actualizada };
@@ -61,15 +61,15 @@ function useReservas() {
         mensaje:
           err.response?.data?.message ||
           err.response?.data?.mensaje ||
-          "Error al actualizar la reserva",
+          "Error al actualizar la cancha",
       };
     }
   }
 
-  async function eliminarReserva(id) {
+  async function eliminarCancha(id) {
     try {
-      await deleteReserva(id);
-      setReservas((prev) => prev.filter((item) => item.id !== id));
+      await deleteCancha(id);
+      setCanchas((prev) => prev.filter((item) => item.id !== id));
       return { ok: true };
     } catch (err) {
       return {
@@ -77,20 +77,20 @@ function useReservas() {
         mensaje:
           err.response?.data?.message ||
           err.response?.data?.mensaje ||
-          "Error al eliminar la reserva",
+          "Error al eliminar la cancha",
       };
     }
   }
 
   return {
-    reservas,
+    canchas,
     loading,
     error,
-    fetchReservas,
-    agregarReserva,
-    editarReserva,
-    eliminarReserva,
+    fetchCanchas,
+    agregarCancha,
+    editarCancha,
+    eliminarCancha,
   };
 }
 
-export default useReservas;
+export default useCanchas;

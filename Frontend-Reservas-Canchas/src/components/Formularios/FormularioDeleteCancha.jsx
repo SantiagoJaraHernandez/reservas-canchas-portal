@@ -3,7 +3,13 @@ import BtnAccion from "../Botones/ButtonAccion";
 import Titulo from "../texts/Title";
 import SubTitulo from "../texts/SubTitle";
 
-function FormularioDelete({ titulo, subTitulo, textoBoton, reserva, onDeleteReserva }) {
+function FormularioDeleteCancha({
+  titulo,
+  subTitulo,
+  textoBoton,
+  cancha,
+  onDeleteCancha,
+}) {
   const [loading, setLoading] = useState(false);
   const [errorApi, setErrorApi] = useState("");
 
@@ -12,7 +18,7 @@ function FormularioDelete({ titulo, subTitulo, textoBoton, reserva, onDeleteRese
     setLoading(true);
     setErrorApi("");
 
-    const result = await onDeleteReserva();
+    const result = await onDeleteCancha();
 
     if (!result.ok) {
       setErrorApi(result.mensaje);
@@ -29,11 +35,11 @@ function FormularioDelete({ titulo, subTitulo, textoBoton, reserva, onDeleteRese
       </div>
 
       <div className="space-y-3 mb-6 text-slate-700">
-        <p><strong>ID:</strong> {reserva?.id}</p>
-        <p><strong>Cancha:</strong> {reserva?.idCancha}</p>
-        <p><strong>Fecha:</strong> {reserva?.fecha}</p>
-        <p><strong>Hora Inicio:</strong> {reserva?.horaInicio}</p>
-        <p><strong>Hora Fin:</strong> {reserva?.horaFin}</p>
+        <p><strong>ID:</strong> {cancha?.id}</p>
+        <p><strong>Nombre:</strong> {cancha?.nombre}</p>
+        <p><strong>Tipo:</strong> {cancha?.tipo}</p>
+        <p><strong>Precio:</strong> {cancha?.precioHora}</p>
+        <p><strong>Activa:</strong> {cancha?.activa ? "Sí" : "No"}</p>
       </div>
 
       {errorApi && <p className="text-red-500 text-sm mb-4">{errorApi}</p>}
@@ -49,4 +55,4 @@ function FormularioDelete({ titulo, subTitulo, textoBoton, reserva, onDeleteRese
   );
 }
 
-export default FormularioDelete;
+export default FormularioDeleteCancha;
