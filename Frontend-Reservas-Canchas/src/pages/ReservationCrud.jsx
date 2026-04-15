@@ -1,30 +1,84 @@
-
-import Titulo from "../components/texts/Title";
-import SubTitulo from "../components/texts/SubTitle";
-import Formulario from "../components/Formularios/FormularioCrud";
+import { useNavigate, useParams } from "react-router-dom";
+import useReservas from "../hooks/useReservas";
+import useReservaById from "../hooks/useReservaById";
+import FormularioCrud from "../components/Formularios/FormularioCrud";
 import FormularioDelete from "../components/Formularios/FormularioDelete";
-import Icon from "../ui/Icon";
 
+function ReservationCrud({ modo }) {
+  const navigate = useNavigate();
+  const { id } = useParams();
 
-function FormularioReservas({ titulo, subTitulo, textoBoton, icono, className = "", styleIcon, modo, container }) {
+  const { agregarReserva, editarReserva, eliminarReserva } = useReservas();
+  const { reserva, loading, error } = useReservaById(id);
 
+  async function onCrear(payload) {
+    const result = await agregarReserva(payload);
+    if (result.ok) navigate("/dashboard");
+    return result;
+  }
+
+  async function onEditar(payload) {
+    const result = await editarReserva(Number(id), payload);
+    if (result.ok) navigate("/dashboard");
+    return result;
+  }
+
+  async function onEliminar() {
+    const result = await eliminarReserva(Number(id));
+    if (result.ok) navigate("/dashboard");
+    return result;
+  }
+
+  if (modo === "crear") {
     return (
-        <div className={`${container} flex flex-col gap-5 bg-primaryDeg rounded-card shadow-card`}>
-            <div className={`flex flex-col gap-2 ${className} items-center p-2`}>
-                <div className={`${styleIcon} flex items-center justify-center w-20 h-20 rounded-full`}>
-                    <Icon name={icono}
-                    className="text-[50px]" />
-                </div>
-                <Titulo titulo={titulo}
-                    className="capitalize font-bold text-4xl text-center" />
-                <SubTitulo subTitle={subTitulo}
-                    className="text-slate-500 text-center" />
-            </div>
-            {modo === "crear" && <Formulario textoBoton={textoBoton} />}
-            {modo === "actualizar" && <Formulario textoBoton={textoBoton} />}
-            {modo === "eliminar" && <FormularioDelete textoBoton={textoBoton} container={"rounded-none rounded-b-[8px]"} />}
+      <FormularioCrud
+        titulo="Nueva Reservación"
+        subTitulo="Completa todos los campos para agregar la nueva reserva."
+        textoBoton="Guardar nueva reserva"
+        onSubmitReserva={onCrear}
+      />
+    );
+  }
 
-        </div>
-    )
+  if (loading) {
+    return <p className="text-center py-8 text-slate-500">Cargando reserva...</p>;
+  }
+
+  if (error || !reserva) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">{error || "No se encontró la reserva"}</p>
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="px-4 py-2 rounded-lg bg-primary text-white"
+        >
+          Volver
+        </button>
+      </div>
+    );
+  }
+
+  if (modo === "actualizar") {
+    return (
+      <FormularioCrud
+        titulo="Actualizar Reserva"
+        subTitulo="Actualiza los datos de la reserva seleccionada."
+        textoBoton="Actualizar reserva"
+        reserva={reserva}
+        onSubmitReserva={onEditar}
+      />
+    );
+  }
+
+  return (
+    <FormularioDelete
+      titulo="¿Estás seguro?"
+      subTitulo="Esta acción no se puede deshacer."
+      textoBoton="Eliminar Reserva"
+      reserva={reserva}
+      onDeleteReserva={onEliminar}
+    />
+  );
 }
-export default FormularioReservas;
+
+export default ReservationCrud;
