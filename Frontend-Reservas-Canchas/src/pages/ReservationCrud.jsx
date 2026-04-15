@@ -1,94 +1,84 @@
-
-import Titulo from "../components/texts/Title";
-import SubTitulo from "../components/texts/SubTitle";
+import { useNavigate, useParams } from "react-router-dom";
+import useReservas from "../hooks/useReservas";
+import useReservaById from "../hooks/useReservaById";
 import FormularioCrud from "../components/Formularios/FormularioCrud";
 import FormularioDelete from "../components/Formularios/FormularioDelete";
-import useReservas from "../hooks/useReservas";
-import Icon from "../ui/Icon";
-import ModalConfirmacion from "../components/modales/ModalConfimation";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
+function ReservationCrud({ modo }) {
+  const navigate = useNavigate();
+  const { id } = useParams();
 
-function ReservationCrud({ titulo, subTitulo, textoBoton, icono, className = "", styleIcon, modo, container }) {
+  const { agregarReserva, editarReserva, eliminarReserva } = useReservas();
+  const { reserva, loading, error } = useReservaById(id);
 
-    const { createReserva, updateReserva, deleteReserva } = useReservas();
+  async function onCrear(payload) {
+    const result = await agregarReserva(payload);
+    if (result.ok) navigate("/dashboard");
+    return result;
+  }
 
+  async function onEditar(payload) {
+    const result = await editarReserva(Number(id), payload);
+    if (result.ok) navigate("/dashboard");
+    return result;
+  }
 
-    const navigate = useNavigate();
+  async function onEliminar() {
+    const result = await eliminarReserva(Number(id));
+    if (result.ok) navigate("/dashboard");
+    return result;
+  }
 
-    const [open, setOpen] = useState(false);
-
-
-    const modal = [
-        { title: "!Reserva Guardada Exitosamente", subTitle: "La reserva ha sido registrada correctamente en el sistema.", textoBtn: "Volver Al Inicio", icono: "check_circle" },
-        { title: "!Reserva Actualizada Exitosamente!", subTitle: "La reserva ha sido actualizada correctamente en el sistema.", textoBtn: "Volver Al Inicio", icono: "edit" },
-        { title: "¿Desea Eliminar Esta Reserva?", subTitle: "Esta Acción no se puede deshacer.", textoBtn: "Sí, Eliminar", textoBtn_Two: "No, Cancelar", icono:"warning" }
-    ]
-
+  if (modo === "crear") {
     return (
-        <div className={`${container} flex flex-col gap-5 bg-primaryDeg rounded-card shadow-card `}>
-            <div className={`flex flex-col gap-2 ${className} items-center p-2 `}>
-                <div className={`${styleIcon} flex items-center justify-center w-20 h-20 rounded-full`}>
-                    <Icon name={icono}
-                        className="text-[50px]" />
-                </div>
-                <Titulo titulo={titulo}
-                    className="capitalize font-bold text-4xl text-center" />
-                <SubTitulo subTitle={subTitulo}
-                    className="text-slate-500 text-center" />
-            </div>
-            {modo === "crear" && <FormularioCrud textoBoton={textoBoton} onSubmitReserva={createReserva} onExito={() => setOpen(true)} />}
-            {modo === "actualizar" && <FormularioCrud textoBoton={textoBoton} onSubmitReserva={updateReserva} onExito={() => setOpen(true)} />}
-            {modo === "eliminar" && <FormularioDelete textoBoton={textoBoton} onSubmitReserva={deleteReserva} onExito={() => setOpen(true)} container={"rounded-none rounded-b-[8px]"} />}
+      <FormularioCrud
+        titulo="Nueva Reservación"
+        subTitulo="Completa todos los campos para agregar la nueva reserva."
+        textoBoton="Guardar nueva reserva"
+        onSubmitReserva={onCrear}
+      />
+    );
+  }
 
+  if (loading) {
+    return <p className="text-center py-8 text-slate-500">Cargando reserva...</p>;
+  }
 
-            {(modo === "crear" || modo === "cancha") &&
-                <ModalConfirmacion
-                    title={modal[0].title}
-                    subTitle={modal[0].subTitle}
-                    textoBtn={modal[0].textoBtn}
-                    icono={modal[0].icono}
-                    containerIcono={"bg-primary/20"}
-                    styleIcono={"bg-primary text-white"}
-                    iconoBtn={"arrow_back"}
-                    open={open}
-                    accion={() =>
-                        navigate("/dashboard")}
-                    styleBg={"span__gradient"}
-                />}
-            {(modo === 'actualizar' || modo == "actualizarCancha") &&
-                <ModalConfirmacion
-                    title={modal[1].title}
-                    subTitle={modal[1].subTitle}
-                    textoBtn={modal[1].textoBtn}
-                    icono={modal[1].icono}
-                    containerIcono={"bg-primary/20"}
-                    styleIcono={"bg-primary text-white"}
-                    iconoBtn={"arrow_back"}
-                    open={open}
-                    accion={() =>
-                        navigate("/dashboard")}
-                />
-            }
+  if (error || !reserva) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">{error || "No se encontró la reserva"}</p>
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="px-4 py-2 rounded-lg bg-primary text-white"
+        >
+          Volver
+        </button>
+      </div>
+    );
+  }
 
-            {(modo === "eliminar" || modo === "eliminarCancha") &&
-                <ModalConfirmacion
-                    title={modal[2].title}
-                    subTitle={modal[2].subTitle}
-                    textoBtn={modal[2].textoBtn}
-                    icono={modal[2].icono}
-                    containerIcono={"bg-red-500/20"}
-                    styleIcono={"bg-red-500 text-white"}
-                    iconoBtn={"arrow_back"}
-                    open={open}
-                    accion={() => navigate("/dashboard")}
-                    styleBtn={"bg-red-500"}
-                    textoBtnTwo={modal[2].textoBtn_Two}
-                    styleBg={"span__gradient_red "}
-                />
-            }
-        </div>
-    )
+  if (modo === "actualizar") {
+    return (
+      <FormularioCrud
+        titulo="Actualizar Reserva"
+        subTitulo="Actualiza los datos de la reserva seleccionada."
+        textoBoton="Actualizar reserva"
+        reserva={reserva}
+        onSubmitReserva={onEditar}
+      />
+    );
+  }
+
+  return (
+    <FormularioDelete
+      titulo="¿Estás seguro?"
+      subTitulo="Esta acción no se puede deshacer."
+      textoBoton="Eliminar Reserva"
+      reserva={reserva}
+      onDeleteReserva={onEliminar}
+    />
+  );
 }
+
 export default ReservationCrud;

@@ -39,7 +39,7 @@ function Reservations() {
           icono="add_circle"
           className="mt-5 rounded-full fixed bottom-25 right-0 sm:rounded-lg sm:w-45 sm:h-12 sm:static text-white font-light sm:text-black sm:font-medium"
           styleText="hidden"
-          accion={() => navigate("/dashboard/newReserva")}
+          accion={() => navigate("/dashboard/reservas/nueva")}
         />
       </div>
 
