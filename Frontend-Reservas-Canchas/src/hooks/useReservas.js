@@ -1,65 +1,96 @@
-import api from "../config/api";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  getReservas,
+  createReserva,
+  updateReserva,
+  deleteReserva,
+} from "../services/reservaServices";
 
 function useReservas() {
-    const [reservas, setReservas] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null)
+  const [reservas, setReservas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        getReservas();
-    }, []);
-
-    async function getReservas() {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const { data } = await api.get("/reservas");
-            setReservas(data);
-        } catch (error) {
-            setError("No se puedieron cargar las reservas");
-        }finally {
-            setLoading(false);
-        }
+  async function fetchReservas() {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await getReservas();
+      setReservas(data);
+    } catch (err) {
+      const mensaje =
+        err.response?.data?.message ||
+        err.response?.data?.mensaje ||
+        "No fue posible cargar las reservas";
+      setError(mensaje);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    async function createReserva(newReservation) {
-        try {
+  useEffect(() => {
+    fetchReservas();
+  }, []);
 
-            const {id, ...dataToSend} = newReservation; 
-            const { data } = await api.post("/reservas", dataToSend);
-            setReservas((prev) => [...prev, data]);
-            return { ok: true }
-        } catch (error) {
-            console.error(error);
-            return { ok: false, mensaje: "Error al crear la Reserva" };
-        }
+  async function agregarReserva(payload) {
+    try {
+      const nueva = await createReserva(payload);
+      setReservas((prev) => [...prev, nueva]);
+      return { ok: true, data: nueva };
+    } catch (err) {
+      return {
+        ok: false,
+        mensaje:
+          err.response?.data?.message ||
+          err.response?.data?.mensaje ||
+          "Error al crear la reserva",
+      };
     }
+  }
 
-    async function updateReserva(dataUpdate) {
-        try {
-            const { data } = await api.put(`/reservas/${dataUpdate.id}`, dataUpdate);
-            setReservas((prev) =>
-                prev.map((reserva) => (reserva.id === dataUpdate.id ? data : reserva)));
-            return { ok: true }
-        } catch (error) {
-            console.error(error);
-            return { ok: false, mensaje: "Error Al Actualizar La Reserva" };
-        }
+  async function editarReserva(id, payload) {
+    try {
+      const actualizada = await updateReserva(id, payload);
+      setReservas((prev) =>
+        prev.map((item) => (item.id === id ? actualizada : item))
+      );
+      return { ok: true, data: actualizada };
+    } catch (err) {
+      return {
+        ok: false,
+        mensaje:
+          err.response?.data?.message ||
+          err.response?.data?.mensaje ||
+          "Error al actualizar la reserva",
+      };
     }
+  }
 
-    async function deleteReserva(id) {
-        try {
-            await api.delete(`/reservas/${id}`);
-            setReservas((prev) =>
-                prev.filter((reserva) => reserva.id !== id));
-            return { ok: true };
-        } catch (error) {
-            return { ok: false, mensaje: "Error al eliminar la reserva" };
-        }
+  async function eliminarReserva(id) {
+    try {
+      await deleteReserva(id);
+      setReservas((prev) => prev.filter((item) => item.id !== id));
+      return { ok: true };
+    } catch (err) {
+      return {
+        ok: false,
+        mensaje:
+          err.response?.data?.message ||
+          err.response?.data?.mensaje ||
+          "Error al eliminar la reserva",
+      };
     }
+  }
 
-    return { reservas, loading, error, createReserva, updateReserva, deleteReserva };
+  return {
+    reservas,
+    loading,
+    error,
+    fetchReservas,
+    agregarReserva,
+    editarReserva,
+    eliminarReserva,
+  };
 }
+
 export default useReservas;
