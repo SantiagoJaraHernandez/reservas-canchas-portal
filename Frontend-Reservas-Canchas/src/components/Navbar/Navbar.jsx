@@ -9,12 +9,12 @@ function Navbar() {
   const navigate = useNavigate();
   const { logout } = authServices();
 
-  const itemNav = [
-    { name: "Dashboard", accion: () => navigate("/dashboard") },
-    { name: "Reservas", accion: () => navigate("/dashboard") },
-    { name: "Canchas", accion: () => navigate("/dashboard") },
-    { name: "Usuarios", accion: () => navigate("/dashboard") },
-  ];
+const itemNav = [
+  { name: "Dashboard", accion: () => navigate("/dashboard") },
+  { name: "Reservas", accion: () => navigate("/dashboard") },
+  { name: "Canchas", accion: () => navigate("/dashboard/canchas") },
+  { name: "Usuarios", accion: () => navigate("/dashboard") },
+];
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(false);
