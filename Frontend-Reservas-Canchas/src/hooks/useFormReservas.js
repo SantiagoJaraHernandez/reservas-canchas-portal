@@ -16,7 +16,7 @@ export function useFormReservas(reserva, onSubmitReserva) {
   function validar() {
     const nuevosErrores = {};
 
-    if (!formData.idCancha) nuevosErrores.idCancha = "La cancha es requerida";
+    if (!formData.idCancha) nuevosErrores.idCancha = "Debes seleccionar una cancha";
     if (!formData.fecha) nuevosErrores.fecha = "La fecha es obligatoria";
     if (!formData.horaInicio) nuevosErrores.horaInicio = "Hora inicio requerida";
     if (!formData.horaFin) nuevosErrores.horaFin = "Hora fin requerida";
@@ -49,7 +49,13 @@ export function useFormReservas(reserva, onSubmitReserva) {
     }
 
     setEnviando(true);
-    const resultado = await onSubmitReserva(formData);
+
+    const payload = {
+      ...formData,
+      idCancha: Number(formData.idCancha),
+    };
+
+    const resultado = await onSubmitReserva(payload);
     setEnviando(false);
 
     if (!resultado.ok) {

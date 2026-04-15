@@ -43,16 +43,11 @@ function TablaReservas({
   authUser,
 }) {
   const navigate = useNavigate();
+  const isAdmin = authUser?.role === "ADMIN";
 
-  const headers = [
-    "Reserva",
-    "Usuario",
-    "Cancha",
-    "Fecha",
-    "Horario",
-    "Estado",
-    "Acciones",
-  ];
+  const headers = isAdmin
+    ? ["Reserva", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
+    : ["Reserva", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
 
   return (
     <div className="bg-white rounded-card shadow-card mt-10 overflow-hidden overflow-x-auto">
@@ -92,18 +87,18 @@ function TablaReservas({
                   key={reserva.id}
                 >
                   <td className="px-6 py-4 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="font-semibold text-slate-800">
-                        #{reserva.id}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4 text-center">
-                    <span className="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm">
-                      {formatearUsuario(reserva.idUsuario, authUser)}
+                    <span className="font-semibold text-slate-800">
+                      #{reserva.id}
                     </span>
                   </td>
+
+                  {isAdmin && (
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm">
+                        {formatearUsuario(reserva.idUsuario, authUser)}
+                      </span>
+                    </td>
+                  )}
 
                   <td className="px-6 py-4 text-center">
                     <div className="flex flex-col items-center">

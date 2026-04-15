@@ -6,6 +6,7 @@ import Canchas from "./pages/Canchas";
 import CanchaCrud from "./pages/CanchaCrud";
 import PageAuth from "./pages/PageAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -29,10 +30,38 @@ function App() {
           <Route path="reservas/:id/editar" element={<ReservationCrud modo="actualizar" />} />
           <Route path="reservas/:id/eliminar" element={<ReservationCrud modo="eliminar" />} />
 
-          <Route path="canchas" element={<Canchas />} />
-          <Route path="canchas/nueva" element={<CanchaCrud modo="crear" />} />
-          <Route path="canchas/:id/editar" element={<CanchaCrud modo="actualizar" />} />
-          <Route path="canchas/:id/eliminar" element={<CanchaCrud modo="eliminar" />} />
+          <Route
+            path="canchas"
+            element={
+              <AdminRoute>
+                <Canchas />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="canchas/nueva"
+            element={
+              <AdminRoute>
+                <CanchaCrud modo="crear" />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="canchas/:id/editar"
+            element={
+              <AdminRoute>
+                <CanchaCrud modo="actualizar" />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="canchas/:id/eliminar"
+            element={
+              <AdminRoute>
+                <CanchaCrud modo="eliminar" />
+              </AdminRoute>
+            }
+          />
         </Route>
       </Routes>
     </Router>
