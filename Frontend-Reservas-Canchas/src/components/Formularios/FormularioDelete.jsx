@@ -1,22 +1,32 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import InputForm from "../inputs/InputForm";
 import BtnAggReserva from "../Botones/ButtonReservation";
 import BtnAccion from "../Botones/ButtonAccion";
 import Icon from "../../ui/Icon";
+import { inputs } from "../../utils/FormInputsDelete";
+import { useFormDelete } from "../../hooks/useFormDelete";
 
-function FormularioDelete({ textoBoton, container }) {
-    const inputs = [
-        [{ label: "User ID", type: "text", icono: "person", valor: "Juan Pérez" },
-        { label: "Cancha ID", type: "text", icono: "stadium", valor: "Cancha Central - Grass Sintético" }],
-        [{ label: "Fehca", type: "text", valor: "15 de Octubre, 2023 - 20:00" },
-        { label: "Hora Inicio", type: "text", valor: "20:00 PM" },
-        { label: "Hora Fin", type: "text", valor: "22:00 PM" },]
-    ]
+function FormularioDelete({ textoBoton, container, onSubmitReserva, onExito }) {
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const reserva = location.state?.reserva ?? null;
+
+    const { enviando, errorApi, handleDelete } = useFormDelete(reserva, onSubmitReserva);
+    async function onFormSubmit(e) {
+        const resultado = await handleDelete(e);
+        if (resultado.ok) {
+            onExito();
+        }
+    }
     return (
         <div className={`${container} bg-white rounded-card shadow-card flex p-5 items-center justify-center overflow-hidden`}>
-            <form action="" className="flex flex-col w-[80%] gap-8 flex-wrap">
+            <form action="" onSubmit={onFormSubmit} className="flex flex-col w-[80%] gap-8 flex-wrap">
+                {errorApi && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">
+                        {errorApi}
+                    </div>
+                )}
                 <div className="flex flex-col flex-1 justify-around gap-5
                     sm:flex-row">
                     {inputs[0].map((input, indice) => (
@@ -26,7 +36,7 @@ function FormularioDelete({ textoBoton, container }) {
                             texto={input.label}
                             placeholder={input.placeholder}
                             icono={input.icono}
-                            valor={input.valor}
+                            valor={reserva[input.name] ?? ""}
                             className="w-full focus:border-primary"
                             readOnly
                         />
@@ -47,7 +57,7 @@ function FormularioDelete({ textoBoton, container }) {
                             texto={input.label}
                             placeholder={input.placeholder}
                             className="w-full focus:border-primary"
-                            valor={input.valor}
+                            valor={reserva[input.name] ?? ""}
                             readOnly
                         />
                     ))}
@@ -61,7 +71,8 @@ function FormularioDelete({ textoBoton, container }) {
                         className="sm:w-45 sm:h-13 hover:bg-slate-200 rounded-card flex items-center justify-center px-1" />
                     <BtnAggReserva
                         texto={textoBoton}
-                        className="sm:w-45 sm:h-13 w-30 bg-red-500 text-white border-none outline-none" />
+                        type={"submit"}
+                        className="sm:w-45 sm:h-13 w-30 bg-red-500 text-white border-none outline-none rounded-card" />
 
                 </div>
             </form>
