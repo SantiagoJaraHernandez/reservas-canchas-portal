@@ -54,7 +54,7 @@ function ReservationCrud({ titulo, subTitulo, textoBoton, icono, className = "",
                     iconoBtn={"arrow_back"}
                     open={open}
                     accion={() =>
-                        navigate("/")}
+                        navigate("/dashboard")}
                     styleBg={"span__gradient"}
                 />}
             {(modo === 'actualizar' || modo == "actualizarCancha") &&
@@ -68,7 +68,7 @@ function ReservationCrud({ titulo, subTitulo, textoBoton, icono, className = "",
                     iconoBtn={"arrow_back"}
                     open={open}
                     accion={() =>
-                        navigate("/")}
+                        navigate("/dashboard")}
                 />
             }
 
@@ -82,7 +82,7 @@ function ReservationCrud({ titulo, subTitulo, textoBoton, icono, className = "",
                     styleIcono={"bg-red-500 text-white"}
                     iconoBtn={"arrow_back"}
                     open={open}
-                    accion={() => navigate("/")}
+                    accion={() => navigate("/dashboard")}
                     styleBtn={"bg-red-500"}
                     textoBtnTwo={modal[2].textoBtn_Two}
                     styleBg={"span__gradient_red "}

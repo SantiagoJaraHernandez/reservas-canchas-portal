@@ -14,6 +14,7 @@ function FormularioDelete({ textoBoton, container, onSubmitReserva, onExito }) {
 
     const { enviando, errorApi, handleDelete } = useFormDelete(reserva, onSubmitReserva);
     async function onFormSubmit(e) {
+        e.preventDefault();
         const resultado = await handleDelete(e);
         if (resultado.ok) {
             onExito();
@@ -67,8 +68,10 @@ function FormularioDelete({ textoBoton, container, onSubmitReserva, onExito }) {
                     sm:justify-end ">
                     <BtnAccion
                         texto={"Cancelar"}
-                        accion={() => navigate("/")}
-                        className="sm:w-45 sm:h-13 hover:bg-slate-200 rounded-card flex items-center justify-center px-1" />
+                        type={"button"}
+                        accion={() => navigate("/dashboard")}
+                        className="sm:w-45 sm:h-13 hover:bg-slate-200 rounded-card flex items-center justify-center px-1" 
+                        />
                     <BtnAggReserva
                         texto={textoBoton}
                         type={"submit"}

@@ -39,3 +39,7 @@ body {
   width: 0;
   width: 100%;
 }
+
+.clip-top {
+  clip-path: polygon(0% 0%, 100% 0%, 100% 26%, 0% 3%);
+}
