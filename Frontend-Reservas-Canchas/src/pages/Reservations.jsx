@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import StatCard from "../components/statCard/StatCard";
 import Titulo from "../components/texts/Title";
@@ -5,31 +6,59 @@ import SubTitulo from "../components/texts/SubTitle";
 import BtnAggReserva from "../components/Botones/ButtonReservation";
 import TablaReservas from "../components/TableReservation/TableReservation";
 import useReservas from "../hooks/useReservas";
+import useCanchas from "../hooks/useCanchas";
+import { getAuthUser } from "../utils/auth";
 
 function Reservations() {
   const navigate = useNavigate();
-  const { reservas, loading, error } = useReservas();
+  const authUser = getAuthUser();
 
-  const hoy = new Date().toISOString().split("T")[0];
-  const reservasHoy = reservas.filter((item) => item.fecha === hoy).length;
+  const { reservas, loading, error } = useReservas();
+  const {
+    canchas,
+    loading: loadingCanchas,
+    error: errorCanchas,
+  } = useCanchas();
+
+  const reservasOrdenadas = useMemo(() => {
+    return [...reservas].sort((a, b) => {
+      const fechaA = new Date(`${a.fecha}T${a.horaInicio}`);
+      const fechaB = new Date(`${b.fecha}T${b.horaInicio}`);
+      return fechaA - fechaB;
+    });
+  }, [reservas]);
+
+  const hoy = new Date();
+  const hoyStr = hoy.toISOString().split("T")[0];
+
+  const reservasHoy = reservas.filter((item) => item.fecha === hoyStr).length;
   const pendientes = reservas.filter((item) => item.estado === "PENDIENTE").length;
+
+  const proximas = reservas.filter((item) => {
+    const fechaHora = new Date(`${item.fecha}T${item.horaInicio}`);
+    return fechaHora >= hoy;
+  }).length;
 
   const itemsReserva = [
     { icono: "analytics", title: "Total Reservas", valor: String(reservas.length) },
-    { icono: "event_available", title: "Para Hoy", valor: String(reservasHoy) },
+    { icono: "event_available", title: "Próximas", valor: String(proximas) },
     { icono: "pending_actions", title: "Pendientes", valor: String(pendientes) },
   ];
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8 relative sm:flex-wrap">
+      <div className="flex justify-between items-center mb-8 relative sm:flex-wrap gap-4">
         <div className="flex flex-col gap-1.5">
           <Titulo
-            titulo="Gestión de reservas"
+            titulo={authUser?.role === "ADMIN" ? "Gestión de reservas" : "Mis reservas"}
             className="capitalize font-bold text-4xl"
           />
           <SubTitulo
-            subTitle="Administra y supervisa todas las reservaciones activas del complejo."
+            subTitle={
+              authUser?.role === "ADMIN"
+                ? "Administra y supervisa todas las reservaciones activas del complejo."
+                : "Consulta y administra las reservas asociadas a tu cuenta."
+            }
             className="text-slate-500"
           />
         </div>
@@ -54,7 +83,13 @@ function Reservations() {
         ))}
       </section>
 
-      <TablaReservas reservas={reservas} loading={loading} error={error} />
+      <TablaReservas
+        reservas={reservasOrdenadas}
+        canchas={canchas}
+        loading={loading || loadingCanchas}
+        error={error || errorCanchas}
+        authUser={authUser}
+      />
     </>
   );
 }
