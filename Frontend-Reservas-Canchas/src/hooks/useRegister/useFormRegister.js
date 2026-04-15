@@ -1,29 +1,34 @@
 import { useState } from "react";
 
+
 function useFormRegister(onSubmitRegister) {
 
     const [dataSent, setDataSent] = useState({
-        email: "", password: "", role: "",
+        nombre: "", email: "", password: ""
     });
     const [sending, setSending] = useState(false);
-    const [errors, setErrors] = useState(null);
+    const [errors, setErrors] = useState({});
     const [heyErrors, setHeyErrors] = useState(false);
 
     function validateFields() {
-        const { email, password } = dataSent;
+        const { nombre, email, password } = dataSent;
         const errorsFields = {};
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
-        if (!email) errorsFields.email = "This field is required";
-        if (!password) errorsFields.password = "This field is required";
-        if (password.length < 8 && regex.test(password)) errorsFields.password = "Password must be least 8 characters, including uppercase, lowercase, number and special character";
+        if (!nombre) errorsFields.nombre = "This field is required";
+            if (!email) errorsFields.email = "This field is required";
+        if (!password) {
+            errorsFields.password = "This field is required";
+        } else if (password.length < 8 || !regex.test(password)) {
+            errorsFields.password = "Password must be least 8 characters, including uppercase, lowercase, number and special character";
+        }
 
-        return errorsFound;
+        return errorsFields;
     };
 
     function handleChange(campo, valor) {
         setDataSent((prev) => ({ ...prev, [campo]: valor }));
-        setErrors((prev) => ({ ...prev, [campo]: "" }));
+        setErrors((prev) => ({ ...prev, [campo]: "" }))
     };
 
     async function handleSubmit(e) {
@@ -52,4 +57,4 @@ function useFormRegister(onSubmitRegister) {
     return { handleChange, handleSubmit, sending, errors, heyErrors };
 };
 
-export default useFormRegister
+export default useFormRegister;

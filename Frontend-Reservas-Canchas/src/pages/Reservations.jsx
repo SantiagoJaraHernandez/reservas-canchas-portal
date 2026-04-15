@@ -32,7 +32,7 @@ function Reservations() {
                 sm:rounded-lg sm:w-45 sm:h-12 sm:static text-white font-light sm:text-black sm:font-medium
                 "
                 styleText="hidden"
-                accion={()=> navigate("/newReserva")} />
+                accion={()=> navigate("/dashboard/newReserva")} />
 
             </div>
 

@@ -1,7 +1,29 @@
-import api from "../config/api";
+import apiAuth from "../config/apiAuth";
 
-const authServices = {
-    register: (newUser) => api.post("/register", newUser).then(user => user.data),
-    login: (user) => api.post("/login", user).then(user => user.data),
+function authServices() {
+
+    async function register(newUser) {
+        try {
+            const { data } = await apiAuth.post("/auth/register", newUser);
+            console.log(data)
+            return data;
+        } catch (error) {
+            console.error(error.response?.data);
+        }
+    };
+
+    async function login(userLogin) {
+        try {
+            const { data } = await apiAuth.post("/auth/login", userLogin);
+            console.log(data)
+            localStorage.setItem("token", data.token)
+            return data;
+        } catch (error) {
+            console.error(error.response?.data)
+        }
+    }
+    return { register, login }
+
 }
+
 export default authServices;

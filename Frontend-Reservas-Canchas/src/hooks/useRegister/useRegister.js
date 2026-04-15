@@ -6,18 +6,19 @@ function useRegister() {
     const [errorsApi, setErrorsApi] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const { register } = authServices;
+    const { register } = authServices();
 
     async function registerUser(newUser) {
         try {
             setLoading(true);
-            const { data } = await register(newUser);
-            setUsers(data);
+            const user = await register(newUser);
+            setUsers(user);
+            console.log(user)
             return { ok: true }
         } catch (error) {
-            console.error("error register", error.response.data);
-            setErrorsApi(error.response.data);
-            return { ok: false, mensaje: error.response.data || "Error in the registration" };
+            console.error("error register", error.response?.data);
+            setErrorsApi(error);
+            return { ok: false, mensaje: error.response?.data || "Error in the registration" };
         } finally {
             setLoading(false);
         }

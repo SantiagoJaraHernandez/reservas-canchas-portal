@@ -6,8 +6,8 @@ import BtnAggReserva from "../Botones/ButtonReservation";
 function ModalConfirmacion({ icono, title, subTitle, accion, textoBtn, accionTwo, textoBtnTwo, iconoBtn, containerIcono, styleIcono, open, styleBtn, styleBg }) {
 
     return (
-        <div className={`bg-black/30 fixed w-full  h-full inset-0 flex items-center justify-center transition-all duration-500
-        ${open ? "opacity-100": "opacity-0 pointer-events-none"}`}>
+        <div className={`bg-black/30 fixed w-full  h-full inset-0 flex items-center justify-center transition-all duration-500 
+        ${open ? "opacity-100 z-50": "opacity-0 pointer-events-none"}`}>
             <div className="bg-bg-app flex flex-col items-center gap-6 px-10 py-10 justify-center  rounded-2xl max-h-125 max-w-100 relative overflow-hidden">
                 <div className={`${containerIcono} flex items-center justify-center rounded-full h-25 w-25 `}>
                     <Icon name={icono} className={`${styleIcono} h-20 w-20 flex items-center justify-center rounded-full text-[40px] `} />

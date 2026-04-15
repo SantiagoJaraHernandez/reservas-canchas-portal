@@ -39,10 +39,10 @@ function TablaReservas() {
                             <td className="text-center">
                                 <div className="flex gap-1 justify-center">
                                     <BtnAccion icono={"edit"} className="hover:text-primary"
-                                        accion={() => navigate("/actualizarReserva", { state: { reserva } })} />
+                                        accion={() => navigate("/dashboard/actualizarReserva", { state: { reserva } })} />
                                     <BtnAccion icono={"delete"}
                                         className="hover:text-primary"
-                                        accion={() => navigate("/eliminarReserva", { state: { reserva } })} />
+                                        accion={() => navigate("/dashboard/eliminarReserva", { state: { reserva } })} />
                                 </div>
                             </td>
                         </tr>

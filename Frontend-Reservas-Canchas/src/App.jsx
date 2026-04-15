@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./components/Main/MainLayout";
 import Reservations from "./pages/Reservations";
 import FormularioReservas from "./pages/ReservationCrud";
@@ -9,7 +9,8 @@ function App() {
 
     <Router>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
+        <Route path="/" element={<Navigate to="/login" replace/>} />
+        <Route path="/dashboard" element={<MainLayout />}>
           <Route index element={<Reservations />} />
           <Route path="newReserva" element={
             <FormularioReservas titulo={"Nueva Reservación"}
