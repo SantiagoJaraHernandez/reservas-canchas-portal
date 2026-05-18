@@ -1,4 +1,4 @@
-import apiAuth from "../config/apiAuth";
+import apiAuth from "../../../config/apiAuth";
 
 function authServices() {
   async function register(newUser) {

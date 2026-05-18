@@ -1,5 +1,5 @@
 import { useState } from "react";
-import authServices from "../../services/authServices";
+import authServices from "../../features/auth/services/authServices";
 
 function useRegister() {
     const [users, setUsers] = useState([]);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import authServices from "../../services/authServices";
+import authServices from "../../features/auth/services/authServices";
 
 function useLogin() {
   const { login } = authServices();
@@ -12,6 +12,7 @@ function useLogin() {
       setErrorsApi(null);
 
       const data = await login(usuario);
+      console.log(data)
 
       return { ok: true, data };
     } catch (error) {
