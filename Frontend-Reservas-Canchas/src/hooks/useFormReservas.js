@@ -1,6 +1,9 @@
 import { useState } from "react";
+import useAuthStore from "@/app/store/authStore";
 
 export function useFormReservas(reserva, onSubmitReserva) {
+  const user = useAuthStore((state) => state.user);
+
   const [formData, setFormData] = useState({
     id: reserva?.id ?? null,
     idCancha: reserva?.idCancha ?? "",
@@ -51,19 +54,38 @@ export function useFormReservas(reserva, onSubmitReserva) {
     setEnviando(true);
 
     const payload = {
-      ...formData,
       idCancha: Number(formData.idCancha),
+      fecha: formData.fecha,
+      horaInicio: `${formData.horaInicio}:00`,
+      horaFin: `${formData.horaFin}:00`,
+      idUsuario: user?.id, 
+      estado: "PENDIENTE",
+      fechaCreacion: new Date().toISOString(),
     };
 
+    if (formData.id) {
+      payload.id = formData.id; 
+    }
+    console.log("👤 Usuario actual:", user);
+    console.log("📦 Payload final:", payload);
+
     const resultado = await onSubmitReserva(payload);
+
     setEnviando(false);
 
     if (!resultado.ok) {
-      setErrorApi(resultado.mensaje);
+      setErrorApi(resultado.message);
     }
 
     return resultado;
   }
 
-  return { formData, handleChange, errores, errorApi, enviando, handleSubmit };
+  return {
+    formData,
+    handleChange,
+    errores,
+    errorApi,
+    enviando,
+    handleSubmit,
+  };
 }

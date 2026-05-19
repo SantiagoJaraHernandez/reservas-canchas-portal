@@ -21,6 +21,7 @@ export function getAuthUser() {
   const token = localStorage.getItem("token");
   const payload = parseJwt(token);
 
+
   if (!payload) return null;
 
   return {

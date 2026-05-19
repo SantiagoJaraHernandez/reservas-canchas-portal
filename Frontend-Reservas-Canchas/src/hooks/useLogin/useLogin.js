@@ -1,8 +1,8 @@
 import { useState } from "react";
-import authServices from "../../features/auth/services/authServices";
+import { authServices } from "@/features/auth/services/authServices";
 
 function useLogin() {
-  const { login } = authServices();
+  const { login } = authServices;
   const [loading, setLoading] = useState(false);
   const [errorsApi, setErrorsApi] = useState(null);
 

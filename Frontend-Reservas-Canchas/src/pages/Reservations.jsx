@@ -5,28 +5,28 @@ import Titulo from "../components/texts/Title";
 import SubTitulo from "../components/texts/SubTitle";
 import BtnAggReserva from "../components/Botones/ButtonReservation";
 import TablaReservas from "../components/TableReservation/TableReservation";
-import useReservas from "../hooks/useReservas";
-import useCanchas from "../hooks/useCanchas";
-import { getAuthUser } from "../utils/auth";
+import { useReservas } from '@/features/reservations/hooks/useReservas';
+import  useAuthStore  from '@/app/store/authStore';
 
 function Reservations() {
   const navigate = useNavigate();
-  const authUser = getAuthUser();
+  const user = useAuthStore((state) => state.user);
 
   const { reservas, loading, error } = useReservas();
-  const {
-    canchas,
-    loading: loadingCanchas,
-    error: errorCanchas,
-  } = useCanchas();
+
 
   const reservasOrdenadas = useMemo(() => {
-    return [...reservas].sort((a, b) => {
-      const fechaA = new Date(`${a.fecha}T${a.horaInicio}`);
-      const fechaB = new Date(`${b.fecha}T${b.horaInicio}`);
-      return fechaA - fechaB;
-    });
-  }, [reservas]);
+  const base =
+  user?.role === "ADMIN"
+    ? reservas
+    : reservas.filter((r) => r.idUsuario === user?.id);
+
+  return [...base].sort((a, b) => {
+    const fechaA = new Date(`${a.fecha}T${a.horaInicio}`);
+    const fechaB = new Date(`${b.fecha}T${b.horaInicio}`);
+    return fechaA - fechaB;
+  });
+}, [reservas, user]);
 
   const hoy = new Date();
   const hoyStr = hoy.toISOString().split("T")[0];
@@ -50,12 +50,12 @@ function Reservations() {
       <div className="flex justify-between items-center mb-8 relative sm:flex-wrap gap-4">
         <div className="flex flex-col gap-1.5">
           <Titulo
-            titulo={authUser?.role === "ADMIN" ? "Gestión de reservas" : "Mis reservas"}
+            titulo={user?.role === "ADMIN" ? "Gestión de reservas" : "Mis reservas"}
             className="capitalize font-bold text-4xl"
           />
           <SubTitulo
             subTitle={
-              authUser?.role === "ADMIN"
+              user?.role === "ADMIN"
                 ? "Administra y supervisa todas las reservaciones activas del complejo."
                 : "Consulta y administra las reservas asociadas a tu cuenta."
             }
@@ -85,10 +85,9 @@ function Reservations() {
 
       <TablaReservas
         reservas={reservasOrdenadas}
-        canchas={canchas}
-        loading={loading || loadingCanchas}
-        error={error || errorCanchas}
-        authUser={authUser}
+        loading={loading }
+        error={error}
+        authUser={user}
       />
     </>
   );

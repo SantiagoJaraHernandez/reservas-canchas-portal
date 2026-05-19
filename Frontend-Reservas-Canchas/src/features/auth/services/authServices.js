@@ -1,30 +1,13 @@
-import apiAuth from "../../../config/apiAuth";
+import authClient from '@/core/api/authClient';
 
-function authServices() {
-  async function register(newUser) {
-    try {
-      const { data } = await apiAuth.post("/auth/register", newUser);
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
+export const authService = {
+  login: async (credentials) => {
+    const { data } = await authClient.post('/auth/login', credentials);
+    return data;
+  },
 
-  async function login(userLogin) {
-    try {
-      const { data } = await apiAuth.post("/auth/login", userLogin);
-      localStorage.setItem("token", data.token);
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem("token");
-  }
-
-  return { register, login, logout };
-}
-
-export default authServices;
+  register: async (payload) => {
+    const { data } = await authClient.post('/auth/register', payload);
+    return data;
+  },
+};

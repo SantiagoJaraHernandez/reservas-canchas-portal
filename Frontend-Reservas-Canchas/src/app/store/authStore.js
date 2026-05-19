@@ -1,53 +1,41 @@
-import { create } from 'zustand';
-import { jwtDecode } from 'jwt-decode';
+import { create } from "zustand";
 
-const getInitialState = () => {
-  const token = localStorage.getItem('token');
+const useAuthStore = create((set) => ({
+  user: null,
+  token: null,
+  isAuthenticated: false,
 
-  if (!token) {
-    return {
-      token: null,
-      user: null,
-      isAuthenticated: false,
-    };
-  }
+  login: (data) => {
+  const { token, email, rol } = data;
+
+  let userId = null;
 
   try {
-    const decoded = jwtDecode(token);
-
-    return {
-      token,
-      user: decoded,
-      isAuthenticated: true,
-    };
-  } catch {
-    localStorage.removeItem('token');
-
-    return {
-      token: null,
-      user: null,
-      isAuthenticated: false,
-    };
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    userId = payload.userId || payload.sub || null;
+  } catch (e) {
+    console.error("Error parseando JWT", e);
   }
-};
 
-export const useAuthStore = create((set) => ({
-  ...getInitialState(),
+  const user = {
+    id: userId,
+    email,
+    role: rol,
+  };
 
-  login: (token) => {
-    const decoded = jwtDecode(token);
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(user));
 
-    localStorage.setItem('token', token);
-
-    set({
-      token,
-      user: decoded,
-      isAuthenticated: true,
-    });
-  },
+  set({
+    token,
+    user,
+    isAuthenticated: true,
+  });
+},
 
   logout: () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
     set({
       token: null,
@@ -55,4 +43,28 @@ export const useAuthStore = create((set) => ({
       isAuthenticated: false,
     });
   },
+
+  loadSession: () => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+
+    if (!token || !userData) {
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userData);
+
+      set({
+        token,
+        user,
+        isAuthenticated: true,
+      });
+    } catch (e) {
+      console.error("Error cargando sesión", e);
+      localStorage.clear();
+    }
+  },
 }));
+
+export default useAuthStore;

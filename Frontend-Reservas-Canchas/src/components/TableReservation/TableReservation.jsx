@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import StatusBadges from "./StatusBadges";
 import BtnAccion from "../Botones/ButtonAccion";
+import useAuthStore from "@/app/store/authStore";
 
 function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";
@@ -43,6 +44,7 @@ function TablaReservas({
   authUser,
 }) {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user); // ✅ BIEN UBICADO
   const isAdmin = authUser?.role === "ADMIN";
 
   const headers = isAdmin
@@ -83,8 +85,8 @@ function TablaReservas({
 
               return (
                 <tr
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                   key={reserva.id}
+                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                 >
                   <td className="px-6 py-4 text-center">
                     <span className="font-semibold text-slate-800">
@@ -94,7 +96,7 @@ function TablaReservas({
 
                   {isAdmin && (
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm">
+                      <span className="inline-block bg-slate-100 px-3 py-1 rounded-full text-sm">
                         {formatearUsuario(reserva.idUsuario, authUser)}
                       </span>
                     </td>
@@ -112,15 +114,11 @@ function TablaReservas({
                   </td>
 
                   <td className="px-6 py-4 text-center">
-                    <span className="text-slate-700">
-                      {formatearFecha(reserva.fecha)}
-                    </span>
+                    {formatearFecha(reserva.fecha)}
                   </td>
 
                   <td className="px-6 py-4 text-center">
-                    <span className="bg-slate-100 rounded-xl px-3 py-1 text-sm text-slate-700">
-                      {formatearHora(reserva.horaInicio)} - {formatearHora(reserva.horaFin)}
-                    </span>
+                    {formatearHora(reserva.horaInicio)} - {formatearHora(reserva.horaFin)}
                   </td>
 
                   <td className="px-6 py-4 text-center">
@@ -129,16 +127,22 @@ function TablaReservas({
 
                   <td className="px-6 py-4 text-center">
                     <div className="flex gap-2 justify-center">
-                      <BtnAccion
-                        icono="edit"
-                        className="hover:text-primary"
-                        accion={() => navigate(`/dashboard/reservas/${reserva.id}/editar`)}
-                      />
-                      <BtnAccion
-                        icono="delete"
-                        className="hover:text-red-500"
-                        accion={() => navigate(`/dashboard/reservas/${reserva.id}/eliminar`)}
-                      />
+                      {(user?.role === "ADMIN" || user?.id === reserva.idUsuario) && (
+                        <>
+                          <BtnAccion
+                            icono="edit"
+                            accion={() =>
+                              navigate(`/dashboard/reservas/${reserva.id}/editar`)
+                            }
+                          />
+                          <BtnAccion
+                            icono="delete"
+                            accion={() =>
+                              navigate(`/dashboard/reservas/${reserva.id}/eliminar`)
+                            }
+                          />
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
