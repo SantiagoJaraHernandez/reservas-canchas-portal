@@ -1,0 +1,22 @@
+services:
+  frontend:
+    container_name: reservas-main-frontend
+    image: reservas-frontend:main
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+    ports:
+      - "5175:80"
+    restart: unless-stopped
+    networks:
+      - reservas-main-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  reservas-main-net:
+    external: true
