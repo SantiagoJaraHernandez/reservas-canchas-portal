@@ -1,94 +1,113 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import StatCard from "../components/statCard/StatCard";
-import Titulo from "../components/texts/Title";
-import SubTitulo from "../components/texts/SubTitle";
-import BtnAggReserva from "../components/Botones/ButtonReservation";
-import TablaReservas from "../components/TableReservation/TableReservation";
 import { useReservas } from '@/features/reservations/hooks/useReservas';
-import  useAuthStore  from '@/app/store/authStore';
+import useAuthStore from '@/app/store/authStore';
+import TablaReservas from "../components/TableReservation/TableReservation";
+
+function StatCard({ icono, label, value, accent }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-icon" style={accent ? { background: accent + '20', color: accent } : {}}>
+        <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{icono}</span>
+      </div>
+      <div>
+        <p className="stat-label">{label}</p>
+        <p className="stat-value">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 function Reservations() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-
   const { reservas, loading, error } = useReservas();
-
+  const isAdmin = user?.role === 'ADMIN';
 
   const reservasOrdenadas = useMemo(() => {
-  const base =
-  user?.role === "ADMIN"
-    ? reservas
-    : reservas.filter((r) => r.idUsuario === user?.id);
-
-  return [...base].sort((a, b) => {
-    const fechaA = new Date(`${a.fecha}T${a.horaInicio}`);
-    const fechaB = new Date(`${b.fecha}T${b.horaInicio}`);
-    return fechaA - fechaB;
-  });
-}, [reservas, user]);
+    const base = isAdmin
+      ? reservas
+      : reservas.filter((r) => r.idUsuario === user?.id);
+    return [...base].sort((a, b) => {
+      const fa = new Date(`${a.fecha}T${a.horaInicio}`);
+      const fb = new Date(`${b.fecha}T${b.horaInicio}`);
+      return fa - fb;
+    });
+  }, [reservas, user, isAdmin]);
 
   const hoy = new Date();
   const hoyStr = hoy.toISOString().split("T")[0];
 
-  const reservasHoy = reservas.filter((item) => item.fecha === hoyStr).length;
-  const pendientes = reservas.filter((item) => item.estado === "PENDIENTE").length;
-
-  const proximas = reservas.filter((item) => {
-    const fechaHora = new Date(`${item.fecha}T${item.horaInicio}`);
-    return fechaHora >= hoy;
+  const totalReservas = isAdmin ? reservas.length : reservasOrdenadas.length;
+  const proximas = reservasOrdenadas.filter((item) => {
+    const fh = new Date(`${item.fecha}T${item.horaInicio}`);
+    return fh >= hoy;
   }).length;
-
-  const itemsReserva = [
-    { icono: "analytics", title: "Total Reservas", valor: String(reservas.length) },
-    { icono: "event_available", title: "Próximas", valor: String(proximas) },
-    { icono: "pending_actions", title: "Pendientes", valor: String(pendientes) },
-  ];
+  const pendientes = reservasOrdenadas.filter((item) => item.estado === "PENDIENTE").length;
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8 relative sm:flex-wrap gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Titulo
-            titulo={user?.role === "ADMIN" ? "Gestión de reservas" : "Mis reservas"}
-            className="capitalize font-bold text-4xl"
-          />
-          <SubTitulo
-            subTitle={
-              user?.role === "ADMIN"
-                ? "Administra y supervisa todas las reservaciones activas del complejo."
-                : "Consulta y administra las reservas asociadas a tu cuenta."
-            }
-            className="text-slate-500"
-          />
+      {/* Page Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">
+            {isAdmin ? 'Gestión de Reservas' : 'Mis Reservas'}
+          </h1>
+          <p className="page-subtitle">
+            {isAdmin
+              ? 'Administra y supervisa todas las reservaciones del complejo.'
+              : 'Consulta y gestiona las reservas asociadas a tu cuenta.'}
+          </p>
         </div>
 
-        <BtnAggReserva
-          texto="Nueva Reserva"
-          icono="add_circle"
-          className="mt-5 rounded-full fixed bottom-25 right-0 sm:rounded-lg sm:w-45 sm:h-12 sm:static text-white font-light sm:text-black sm:font-medium"
-          styleText="hidden"
-          accion={() => navigate("/dashboard/reservas/nueva")}
+        {/* Desktop CTA */}
+        <button
+          className="btn-primary"
+          onClick={() => navigate("/dashboard/reservas/nueva")}
+          style={{ flexShrink: 0 }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+          Nueva Reserva
+        </button>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="stats-grid">
+        <StatCard
+          icono="event_note"
+          label={isAdmin ? 'Total Reservas' : 'Mis Reservas'}
+          value={String(totalReservas)}
+        />
+        <StatCard
+          icono="upcoming"
+          label="Próximas"
+          value={String(proximas)}
+          accent="var(--color-primary)"
+        />
+        <StatCard
+          icono="pending_actions"
+          label="Pendientes"
+          value={String(pendientes)}
+          accent="var(--color-pending)"
         />
       </div>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {itemsReserva.map((item, indice) => (
-          <StatCard
-            key={indice}
-            icono={item.icono}
-            title={item.title}
-            valor={item.valor}
-          />
-        ))}
-      </section>
-
+      {/* Table */}
       <TablaReservas
         reservas={reservasOrdenadas}
-        loading={loading }
+        loading={loading}
         error={error}
         authUser={user}
       />
+
+      {/* FAB for mobile */}
+      <button
+        className="fab"
+        onClick={() => navigate("/dashboard/reservas/nueva")}
+        aria-label="Nueva reserva"
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 26 }}>add</span>
+      </button>
     </>
   );
 }

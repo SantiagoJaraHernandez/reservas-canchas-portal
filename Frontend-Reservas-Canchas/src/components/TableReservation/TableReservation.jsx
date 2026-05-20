@@ -1,22 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import StatusBadges from "./StatusBadges";
-import BtnAccion from "../Botones/ButtonAccion";
 import useAuthStore from "@/app/store/authStore";
-import SkeletonTable from "@/components/ui/SkeletonTable";
-import EmptyState from "@/components/ui/EmptyState";
-import ErrorState from "@/components/ui/ErrorState";
 
 function formatearFecha(fecha) {
-  if (!fecha) return "Sin fecha";
-
+  if (!fecha) return "—";
   const [year, month, day] = fecha.split("-");
   const fechaLocal = new Date(Number(year), Number(month) - 1, Number(day));
-
   return new Intl.DateTimeFormat("es-CO", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+    weekday: "short", month: "short", day: "numeric",
   }).format(fechaLocal);
 }
 
@@ -25,127 +15,184 @@ function formatearHora(hora) {
 }
 
 function formatearUsuario(idUsuario, authUser) {
-  if (!idUsuario) return "Sin usuario";
+  if (!idUsuario) return "—";
   if (authUser?.id && idUsuario === authUser.id) return "Mi reserva";
-
-  if (idUsuario.length > 12) {
-    return `${idUsuario.slice(0, 6)}...${idUsuario.slice(-4)}`;
-  }
-
+  if (idUsuario.length > 12) return `${idUsuario.slice(0, 6)}…${idUsuario.slice(-4)}`;
   return idUsuario;
 }
 
-function obtenerCancha(idCancha, canchas) {
-  return canchas.find((item) => item.id === idCancha);
+function StatusBadge({ status }) {
+  const map = {
+    PAGADO:    { label: 'Pagado',    cls: 'badge-paid' },
+    Pagado:    { label: 'Pagado',    cls: 'badge-paid' },
+    PENDIENTE: { label: 'Pendiente', cls: 'badge-pending' },
+    Pendiente: { label: 'Pendiente', cls: 'badge-pending' },
+    CANCELADO: { label: 'Cancelado', cls: 'badge-cancelled' },
+    Cancelado: { label: 'Cancelado', cls: 'badge-cancelled' },
+  };
+  const cfg = map[status] || { label: status, cls: 'badge-pending' };
+  return <span className={`badge ${cfg.cls}`}>{cfg.label}</span>;
 }
 
-function TablaReservas({
-  reservas = [],
-  canchas = [],
-  loading,
-  error,
-  authUser,
-}) {
+function SkeletonRow({ cols }) {
+  return (
+    <tr>
+      {Array.from({ length: cols }).map((_, i) => (
+        <td key={i} style={{ padding: '14px 16px' }}>
+          <div className="skeleton" style={{ height: 16, borderRadius: 6, width: '60%' }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function TablaReservas({ reservas = [], loading, error, authUser }) {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === "ADMIN";
 
   const headers = isAdmin
-    ? ["Reserva", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
-    : ["Reserva", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
-
-  if (loading) return <SkeletonTable />;
-
-  if (error) return <ErrorState message={error} />;
-
-  if (!reservas.length) {
-    return <EmptyState message="No hay reservas registradas" />;
-  }
+    ? ["#", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
+    : ["#", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm mt-10 overflow-hidden border border-slate-200">
-      <table className="w-full">
-        <thead className="bg-primaryDeg  text-slate-500 text-xs uppercase tracking-wider">
-          <tr>
-            {headers.map((item, index) => (
-              <th className="px-6 py-4 text-center" key={index}>
-                {item}
-              </th>
+    <div className="table-card">
+      {/* Toolbar */}
+      <div className="table-toolbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--color-text-3)' }}>
+            table_rows
+          </span>
+          <span className="table-title">
+            {isAdmin ? 'Todas las reservas' : 'Mis reservas'}
+          </span>
+        </div>
+        {!loading && !error && (
+          <span className="table-count">{reservas.length} registros</span>
+        )}
+      </div>
+
+      <div className="table-scroll">
+        <table className="reservas">
+          <thead>
+            <tr>
+              {headers.map((h) => <th key={h}>{h}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {loading && Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonRow key={i} cols={headers.length} />
             ))}
-          </tr>
-        </thead>
 
-        <tbody>
-          {reservas.map((reserva) => {
-            const cancha = obtenerCancha(reserva.idCancha, canchas);
-
-            return (
-              <tr
-                key={reserva.id}
-                className="border-b border-slate-200 hover:bg-slate-50 transition duration-200"
-              >
-                <td className="px-6 py-4 text-center font-semibold">
-                  #{reserva.id}
-                </td>
-
-                {isAdmin && (
-                  <td className="px-6 py-4 text-center">
-                    <span className="bg-slate-100 px-3 py-1 rounded-full text-sm">
-                      {formatearUsuario(reserva.idUsuario, user)}
-                    </span>
-                  </td>
-                )}
-
-                <td className="px-6 py-4 text-center">
-                  <div className="flex flex-col items-center">
-                    <span className="font-medium">
-                      {cancha?.nombre || `Cancha ${reserva.idCancha}`}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {cancha?.tipo || `ID ${reserva.idCancha}`}
-                    </span>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4 text-center">
-                  {formatearFecha(reserva.fecha)}
-                </td>
-
-                <td className="px-6 py-4 text-center">
-                  {formatearHora(reserva.horaInicio)} - {formatearHora(reserva.horaFin)}
-                </td>
-
-                <td className="px-6 py-4 text-center">
-                  <StatusBadges status={reserva.estado} />
-                </td>
-
-                <td className="px-6 py-4 text-center">
-                  <div className="flex gap-2 justify-center">
-                    {(user?.role === "ADMIN" || user?.id === reserva.idUsuario) && (
-                      <>
-                        <BtnAccion
-                        className="hover:scale-105 active:scale-95 transition-transform duration-150 hover:bg-primaryDeg rounded-full h-12 w-12 flex items-center justify-center p-2"
-                          icono="edit"
-                          accion={() =>
-                            navigate(`/dashboard/reservas/${reserva.id}/editar`)
-                          }
-                        />
-                        <BtnAccion
-                         className="hover:scale-105 active:scale-95 transition-transform duration-150 hover:bg-primaryDeg rounded-full h-12 w-12 flex items-center justify-center p-2"
-                          icono="delete"
-                          accion={() =>
-                            navigate(`/dashboard/reservas/${reserva.id}/eliminar`)
-                          }
-                        />
-                      </>
-                    )}
+            {!loading && error && (
+              <tr>
+                <td colSpan={headers.length}>
+                  <div className="error-state">
+                    <div className="error-state-icon" style={{ color: 'var(--color-cancelled)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 28 }}>error_outline</span>
+                    </div>
+                    <p className="error-state-title">Error al cargar</p>
+                    <p className="error-state-sub">{error}</p>
                   </div>
                 </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            )}
+
+            {!loading && !error && reservas.length === 0 && (
+              <tr>
+                <td colSpan={headers.length}>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--color-text-3)' }}>
+                        event_busy
+                      </span>
+                    </div>
+                    <p className="empty-state-title">Sin reservas</p>
+                    <p className="empty-state-sub">No hay reservas registradas aún.</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {!loading && !error && reservas.map((reserva) => {
+              const canEdit = user?.role === "ADMIN" || user?.id === reserva.idUsuario;
+              const userInitials = typeof reserva.idUsuario === 'string'
+                ? reserva.idUsuario.slice(0, 2).toUpperCase()
+                : '?';
+
+              return (
+                <tr key={reserva.id}>
+                  {/* ID */}
+                  <td>
+                    <span className="reserva-id">#{reserva.id}</span>
+                  </td>
+
+                  {/* Usuario (admin only) */}
+                  {isAdmin && (
+                    <td>
+                      <div className="user-pill">
+                        <div className="user-pill-avatar">{userInitials}</div>
+                        {formatearUsuario(reserva.idUsuario, user)}
+                      </div>
+                    </td>
+                  )}
+
+                  {/* Cancha */}
+                  <td>
+                    <p className="cancha-name">Cancha {reserva.idCancha}</p>
+                    <p className="cancha-sub">ID {reserva.idCancha}</p>
+                  </td>
+
+                  {/* Fecha */}
+                  <td style={{ color: 'var(--color-text-2)', fontSize: 13 }}>
+                    {formatearFecha(reserva.fecha)}
+                  </td>
+
+                  {/* Horario */}
+                  <td>
+                    <span className="horario">
+                      {formatearHora(reserva.horaInicio)} – {formatearHora(reserva.horaFin)}
+                    </span>
+                  </td>
+
+                  {/* Estado */}
+                  <td>
+                    <StatusBadge status={reserva.estado} />
+                  </td>
+
+                  {/* Acciones */}
+                  <td>
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-start' }}>
+                      {canEdit && (
+                        <>
+                          <button
+                            className="action-btn"
+                            onClick={() => navigate(`/dashboard/reservas/${reserva.id}/editar`)}
+                            title="Editar"
+                            aria-label="Editar reserva"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
+                          </button>
+                          {isAdmin && (
+                            <button
+                              className="action-btn danger"
+                              onClick={() => navigate(`/dashboard/reservas/${reserva.id}/eliminar`)}
+                              title="Eliminar"
+                              aria-label="Eliminar reserva"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
