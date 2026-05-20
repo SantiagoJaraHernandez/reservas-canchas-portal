@@ -1,37 +1,36 @@
 import { create } from "zustand";
+import { parseJwt } from "@/core/utils/jwt";
 
 const useAuthStore = create((set) => ({
   user: null,
   token: null,
   isAuthenticated: false,
 
-  login: (data) => {
-  const { token, email, rol } = data;
+  login: (token) => {
+    console.log("TOKEN RECIBIDO:", token);
 
-  let userId = null;
+    localStorage.setItem("token", token);
 
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    userId = payload.userId || payload.sub || null;
-  } catch (e) {
-    console.error("Error parseando JWT", e);
-  }
+    const payload = parseJwt(token);
 
-  const user = {
-    id: userId,
-    email,
-    role: rol,
-  };
+    console.log("PAYLOAD:", payload);
 
-  localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(user));
+    const user = {
+      id: payload?.userId || "",
+      email: payload?.sub || "",
+      role: payload?.role || "USER",
+    };
 
-  set({
-    token,
-    user,
-    isAuthenticated: true,
-  });
-},
+    console.log("USER GENERADO:", user);
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    set({
+      token,
+      user,
+      isAuthenticated: true,
+    });
+  },
 
   logout: () => {
     localStorage.removeItem("token");
@@ -44,13 +43,11 @@ const useAuthStore = create((set) => ({
     });
   },
 
-  loadSession: () => {
+  hydrate: () => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
 
-    if (!token || !userData) {
-      return;
-    }
+    if (!token || !userData) return;
 
     try {
       const user = JSON.parse(userData);
@@ -60,9 +57,9 @@ const useAuthStore = create((set) => ({
         user,
         isAuthenticated: true,
       });
-    } catch (e) {
-      console.error("Error cargando sesión", e);
-      localStorage.clear();
+    } catch {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
   },
 }));

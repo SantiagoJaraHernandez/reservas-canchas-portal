@@ -1,13 +1,17 @@
-import { useEffect, useState, useCallback } from 'react';
-import { reservaService } from '@/features/reservations/services/reservaService';
-import { toast } from 'sonner';
+import { useEffect, useState, useCallback } from "react";
+import { reservaService } from "@/features/reservations/services/reservaService";
+import { toast } from "sonner";
+import { useAsync } from "@/core/hooks/useAsync";
 
 export function useReservas() {
   const [reservas, setReservas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadingFetch, setLoadingFetch] = useState(true);
+  const [error, setError] = useState("");
 
-  // 🔥 helper REAL para errores
+  const createAsync = useAsync(reservaService.create);
+  const updateAsync = useAsync(reservaService.update);
+  const deleteAsync = useAsync(reservaService.delete);
+
   const getErrorMessage = (err, fallback) => {
     if (typeof err === "string") return err;
 
@@ -21,22 +25,17 @@ export function useReservas() {
 
   const fetchReservas = useCallback(async () => {
     try {
-      setLoading(true);
-      setError('');
+      setLoadingFetch(true);
+      setError("");
 
       const data = await reservaService.getAll();
       setReservas(data);
-
     } catch (err) {
-      console.error("❌ ERROR REAL fetch:", err);
-
-      const msg = getErrorMessage(err, 'No se pudieron cargar las reservas');
-
+      const msg = getErrorMessage(err, "No se pudieron cargar las reservas");
       setError(msg);
       toast.error(msg);
-
     } finally {
-      setLoading(false);
+      setLoadingFetch(false);
     }
   }, []);
 
@@ -45,66 +44,51 @@ export function useReservas() {
   }, [fetchReservas]);
 
   const agregarReserva = async (payload) => {
-    try {
-      const nueva = await reservaService.create(payload);
+    const result = await createAsync.execute(payload);
 
-      setReservas((prev) => [...prev, nueva]);
-
-      toast.success('Reserva creada correctamente');
-      return { ok: true, data: nueva };
-
-    } catch (err) {
-      console.error("❌ ERROR REAL crear:", err);
-
-      const msg = getErrorMessage(err, 'Error al crear la reserva');
-
-      toast.error(msg);
-
-      return { ok: false, message: msg };
+    if (result.ok) {
+      setReservas((prev) => [...prev, result.data]);
+      toast.success("Reserva creada correctamente");
+    } else {
+      toast.error(result.message);
     }
+
+    return result;
   };
 
   const editarReserva = async (id, payload) => {
-    try {
-      const actualizada = await reservaService.update(id, payload);
+    const result = await updateAsync.execute(id, payload);
 
+    if (result.ok) {
       setReservas((prev) =>
-        prev.map((r) => (r.id === id ? actualizada : r))
+        prev.map((r) => (r.id === id ? result.data : r))
       );
-
-      toast.success('Reserva actualizada');
-      return { ok: true, data: actualizada };
-
-    } catch (err) {
-      console.error("❌ ERROR REAL editar:", err);
-
-      const msg = getErrorMessage(err, 'Error al actualizar');
-
-      toast.error(msg);
-
-      return { ok: false, message: msg };
+      toast.success("Reserva actualizada");
+    } else {
+      toast.error(result.message);
     }
+
+    return result;
   };
 
   const eliminarReserva = async (id) => {
-    try {
-      await reservaService.delete(id);
+    const result = await deleteAsync.execute(id);
 
+    if (result.ok) {
       setReservas((prev) => prev.filter((r) => r.id !== id));
-
-      toast.success('Reserva eliminada');
-      return { ok: true };
-
-    } catch (err) {
-      console.error("❌ ERROR REAL eliminar:", err);
-
-      const msg = getErrorMessage(err, 'Error al eliminar');
-
-      toast.error(msg);
-
-      return { ok: false, message: msg };
+      toast.success("Reserva eliminada");
+    } else {
+      toast.error(result.message);
     }
+
+    return result;
   };
+
+  const loading =
+    loadingFetch ||
+    createAsync.loading ||
+    updateAsync.loading ||
+    deleteAsync.loading;
 
   return {
     reservas,

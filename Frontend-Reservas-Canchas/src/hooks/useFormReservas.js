@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useAuthStore from "@/app/store/authStore";
+import { reservaService } from "@/features/reservations/services/reservaService";
 
 export function useFormReservas(reserva, onSubmitReserva) {
   const user = useAuthStore((state) => state.user);
@@ -12,9 +13,32 @@ export function useFormReservas(reserva, onSubmitReserva) {
     horaFin: reserva?.horaFin ?? "",
   });
 
+  const [horariosOcupados, setHorariosOcupados] = useState([]);
   const [errores, setErrores] = useState({});
   const [enviando, setEnviando] = useState(false);
   const [errorApi, setErrorApi] = useState("");
+
+  useEffect(() => {
+    async function cargarHorarios() {
+      if (!formData.idCancha || !formData.fecha) return;
+
+      try {
+        const data = await reservaService.getAll();
+
+        const ocupados = data.filter(
+          (r) =>
+            r.idCancha === Number(formData.idCancha) &&
+            r.fecha === formData.fecha
+        );
+
+        setHorariosOcupados(ocupados);
+      } catch (e) {
+        console.error("Error cargando horarios:", e);
+      }
+    }
+
+    cargarHorarios();
+  }, [formData.idCancha, formData.fecha]);
 
   function validar() {
     const nuevosErrores = {};
@@ -29,8 +53,24 @@ export function useFormReservas(reserva, onSubmitReserva) {
       formData.horaFin &&
       formData.horaFin <= formData.horaInicio
     ) {
-      nuevosErrores.horaFin =
-        "La hora de fin debe ser posterior a la hora de inicio";
+      nuevosErrores.horaFin = "La hora de fin debe ser posterior a la hora de inicio";
+    }
+
+    const hoy = new Date().toISOString().split("T")[0];
+    if (formData.fecha < hoy) {
+      nuevosErrores.fecha = "No puedes reservar en fechas pasadas";
+    }
+
+    const conflicto = horariosOcupados.some((r) => {
+      return (
+        formData.horaInicio < r.horaFin &&
+        formData.horaFin > r.horaInicio
+      );
+    });
+
+    if (conflicto) {
+      nuevosErrores.horaInicio = "Horario ya ocupado";
+      nuevosErrores.horaFin = "Horario ya ocupado";
     }
 
     return nuevosErrores;
@@ -58,16 +98,14 @@ export function useFormReservas(reserva, onSubmitReserva) {
       fecha: formData.fecha,
       horaInicio: `${formData.horaInicio}:00`,
       horaFin: `${formData.horaFin}:00`,
-      idUsuario: user?.id, 
+      idUsuario: user?.id,
       estado: "PENDIENTE",
       fechaCreacion: new Date().toISOString(),
     };
 
     if (formData.id) {
-      payload.id = formData.id; 
+      payload.id = formData.id;
     }
-    console.log("👤 Usuario actual:", user);
-    console.log("📦 Payload final:", payload);
 
     const resultado = await onSubmitReserva(payload);
 
@@ -87,5 +125,6 @@ export function useFormReservas(reserva, onSubmitReserva) {
     errorApi,
     enviando,
     handleSubmit,
+    horariosOcupados,
   };
 }

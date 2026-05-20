@@ -1,13 +1,16 @@
-
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useAuthStore from "@/app/store/authStore";
 
 function AppInitializer({ children }) {
-  const loadSession = useAuthStore((state) => state.loadSession);
+  const hydrate = useAuthStore((state) => state.hydrate);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    loadSession();
+    hydrate();
+    setReady(true);
   }, []);
+
+  if (!ready) return null;
 
   return children;
 }

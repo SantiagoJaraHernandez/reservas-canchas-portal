@@ -1,14 +1,14 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import useAuthStore from "@/app/store/authStore";
 
-function RoleGuard({ allowedRoles }) {
+function RoleGuard({ allowedRoles, children }) {
   const user = useAuthStore((state) => state.user);
 
-  if (!allowedRoles.includes(user?.role)) {
+  if (!user || !allowedRoles.includes(user.role)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return <Outlet />;
+  return children;
 }
 
 export default RoleGuard;

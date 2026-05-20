@@ -27,7 +27,7 @@ function Navbar() {
   }
 
   return (
-    <header className="w-full bg-white shadow-card h-15">
+    <header className="w-full bg-white shadow-card h-15 overflow-hidden">
       <div className="h-full max-w-7xl m-auto flex justify-between items-center px-4">
         <div className="flex items-center flex-1">
           <Icon
@@ -78,7 +78,7 @@ function Navbar() {
               {user.email}
             </span>
           )}
-          <UserAvatar accion={() => setOpen(!open)} />
+          <UserAvatar accion={() => setOpen(!open)} usuario={user.email.slice(0, 2)} />
         </div>
       </div>
     </header>

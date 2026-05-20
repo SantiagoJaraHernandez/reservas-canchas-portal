@@ -20,7 +20,6 @@ function ReservationCrud({ modo }) {
 
   const reserva = reservas.find((r) => String(r.id) === String(id));
 
-  // 🔐 PROTECCIÓN
   if (
     reserva &&
     user?.role !== "ADMIN" &&
@@ -66,6 +65,7 @@ function ReservationCrud({ modo }) {
 
   if (modo === "actualizar") {
     return (
+
       <FormularioCrud
         titulo="Editar Reserva"
         subTitulo="Actualiza los datos"
@@ -73,6 +73,7 @@ function ReservationCrud({ modo }) {
         reserva={reserva}
         onSubmitReserva={onEditar}
       />
+     
     );
   }
 
