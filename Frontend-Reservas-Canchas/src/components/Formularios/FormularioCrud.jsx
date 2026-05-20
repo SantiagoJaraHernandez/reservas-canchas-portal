@@ -1,6 +1,7 @@
 import { inputs } from "../../utils/FormInputs";
 import { useFormReservas } from "../../hooks/useFormReservas";
 import { useNavigate } from "react-router-dom";
+import { useCanchas } from "@/features/canchas/hooks/useCanchas";
 
 function FormularioCrud({ titulo, subTitulo, textoBoton, reserva = null, onSubmitReserva }) {
   const { formData, handleChange, errores, errorApi, enviando, handleSubmit, horariosOcupados } =
@@ -8,6 +9,14 @@ function FormularioCrud({ titulo, subTitulo, textoBoton, reserva = null, onSubmi
 
   const navigate = useNavigate();
   const isEditing = !!reserva;
+  const { canchas, loading: loadingCanchas, error: errorCanchas } = useCanchas({ soloActivas: true });
+
+  const formatearPrecio = (valor) =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0,
+    }).format(valor || 0);
 
   return (
     <div className="crud-page">
@@ -37,17 +46,25 @@ function FormularioCrud({ titulo, subTitulo, textoBoton, reserva = null, onSubmi
             <div className="form-group">
               <label className="form-label">Cancha</label>
               <select
-                disabled={enviando}
+                disabled={enviando || loadingCanchas}
                 value={formData.idCancha}
                 onChange={(e) => handleChange("idCancha", e.target.value)}
                 className="form-input-plain"
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: loadingCanchas ? 'not-allowed' : 'pointer' }}
               >
-                <option value="">Selecciona una cancha</option>
-                <option value={1}>Cancha 1 — Fútbol 5</option>
-                <option value={2}>Cancha 2 — Fútbol 7</option>
-                <option value={3}>Cancha 3 — Fútbol 11</option>
+                <option value="">
+                  {loadingCanchas ? "Cargando canchas..." : "Selecciona una cancha"}
+                </option>
+                {canchas.map((cancha) => (
+                  <option key={cancha.id} value={cancha.id}>
+                    {cancha.nombre} — {cancha.tipo} — {formatearPrecio(cancha.precioHora)}
+                  </option>
+                ))}
               </select>
+              {errorCanchas && <p className="field-error">{errorCanchas}</p>}
+              {!loadingCanchas && !errorCanchas && canchas.length === 0 && (
+                <p className="field-error">No hay canchas activas registradas en la base de datos</p>
+              )}
               {errores.idCancha && <p className="field-error">{errores.idCancha}</p>}
             </div>
 
