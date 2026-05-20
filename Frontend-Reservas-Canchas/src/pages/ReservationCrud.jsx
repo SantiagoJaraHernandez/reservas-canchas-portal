@@ -1,15 +1,33 @@
 import { useNavigate, useParams } from "react-router-dom";
-import useReservas from "../hooks/useReservas";
-import useReservaById from "../hooks/useReservaById";
+import { useReservas } from "@/features/reservations/hooks/useReservas";
+import useAuthStore from "@/app/store/authStore";
 import FormularioCrud from "../components/Formularios/FormularioCrud";
 import FormularioDelete from "../components/Formularios/FormularioDelete";
 
 function ReservationCrud({ modo }) {
   const navigate = useNavigate();
   const { id } = useParams();
+  const user = useAuthStore((state) => state.user);
 
-  const { agregarReserva, editarReserva, eliminarReserva } = useReservas();
-  const { reserva, loading, error } = useReservaById(id);
+  const {
+    reservas,
+    loading,
+    error,
+    agregarReserva,
+    editarReserva,
+    eliminarReserva,
+  } = useReservas();
+
+  const reserva = reservas.find((r) => String(r.id) === String(id));
+
+  if (
+    reserva &&
+    user?.role !== "ADMIN" &&
+    reserva.idUsuario !== user?.id
+  ) {
+    navigate("/unauthorized");
+    return null;
+  }
 
   async function onCrear(payload) {
     const result = await agregarReserva(payload);
@@ -18,13 +36,13 @@ function ReservationCrud({ modo }) {
   }
 
   async function onEditar(payload) {
-    const result = await editarReserva(Number(id), payload);
+    const result = await editarReserva(id, payload);
     if (result.ok) navigate("/dashboard");
     return result;
   }
 
   async function onEliminar() {
-    const result = await eliminarReserva(Number(id));
+    const result = await eliminarReserva(id);
     if (result.ok) navigate("/dashboard");
     return result;
   }
@@ -33,48 +51,37 @@ function ReservationCrud({ modo }) {
     return (
       <FormularioCrud
         titulo="Nueva Reservación"
-        subTitulo="Completa todos los campos para agregar la nueva reserva."
-        textoBoton="Guardar nueva reserva"
+        subTitulo="Completa los datos"
+        textoBoton="Guardar"
         onSubmitReserva={onCrear}
       />
     );
   }
 
-  if (loading) {
-    return <p className="text-center py-8 text-slate-500">Cargando reserva...</p>;
-  }
+  if (loading) return <p className="text-center py-8">Cargando...</p>;
 
-  if (error || !reserva) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-500 mb-4">{error || "No se encontró la reserva"}</p>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="px-4 py-2 rounded-lg bg-primary text-white"
-        >
-          Volver
-        </button>
-      </div>
-    );
-  }
+  if (error || !reserva)
+    return <p className="text-center text-red-500">Error o no encontrada</p>;
 
   if (modo === "actualizar") {
     return (
+
       <FormularioCrud
-        titulo="Actualizar Reserva"
-        subTitulo="Actualiza los datos de la reserva seleccionada."
-        textoBoton="Actualizar reserva"
+        titulo="Editar Reserva"
+        subTitulo="Actualiza los datos"
+        textoBoton="Actualizar"
         reserva={reserva}
         onSubmitReserva={onEditar}
       />
+     
     );
   }
 
   return (
     <FormularioDelete
-      titulo="¿Estás seguro?"
-      subTitulo="Esta acción no se puede deshacer."
-      textoBoton="Eliminar Reserva"
+      titulo="Eliminar Reserva"
+      subTitulo="Esta acción no se puede deshacer"
+      textoBoton="Eliminar"
       reserva={reserva}
       onDeleteReserva={onEliminar}
     />

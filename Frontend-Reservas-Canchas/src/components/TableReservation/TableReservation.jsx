@@ -1,18 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import StatusBadges from "./StatusBadges";
-import BtnAccion from "../Botones/ButtonAccion";
+import useAuthStore from "@/app/store/authStore";
+import { useMemo } from "react";
+import { useCanchas } from "@/features/canchas/hooks/useCanchas";
 
 function formatearFecha(fecha) {
-  if (!fecha) return "Sin fecha";
-
+  if (!fecha) return "—";
   const [year, month, day] = fecha.split("-");
   const fechaLocal = new Date(Number(year), Number(month) - 1, Number(day));
-
   return new Intl.DateTimeFormat("es-CO", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+    weekday: "short", month: "short", day: "numeric",
   }).format(fechaLocal);
 }
 
@@ -21,124 +17,187 @@ function formatearHora(hora) {
 }
 
 function formatearUsuario(idUsuario, authUser) {
-  if (!idUsuario) return "Sin usuario";
+  if (!idUsuario) return "—";
   if (authUser?.id && idUsuario === authUser.id) return "Mi reserva";
-
-  if (idUsuario.length > 12) {
-    return `${idUsuario.slice(0, 6)}...${idUsuario.slice(-4)}`;
-  }
-
+  if (idUsuario.length > 12) return `${idUsuario.slice(0, 6)}…${idUsuario.slice(-4)}`;
   return idUsuario;
 }
 
-function obtenerCancha(idCancha, canchas) {
-  return canchas.find((item) => item.id === idCancha);
+function StatusBadge({ status }) {
+  const map = {
+    PAGADO:    { label: 'Pagado',    cls: 'badge-paid' },
+    Pagado:    { label: 'Pagado',    cls: 'badge-paid' },
+    PENDIENTE: { label: 'Pendiente', cls: 'badge-pending' },
+    Pendiente: { label: 'Pendiente', cls: 'badge-pending' },
+    CANCELADO: { label: 'Cancelado', cls: 'badge-cancelled' },
+    Cancelado: { label: 'Cancelado', cls: 'badge-cancelled' },
+  };
+  const cfg = map[status] || { label: status, cls: 'badge-pending' };
+  return <span className={`badge ${cfg.cls}`}>{cfg.label}</span>;
 }
 
-function TablaReservas({
-  reservas = [],
-  canchas = [],
-  loading,
-  error,
-  authUser,
-}) {
+function SkeletonRow({ cols }) {
+  return (
+    <tr>
+      {Array.from({ length: cols }).map((_, i) => (
+        <td key={i} style={{ padding: '14px 16px' }}>
+          <div className="skeleton" style={{ height: 16, borderRadius: 6, width: '60%' }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function TablaReservas({ reservas = [], loading, error, authUser }) {
   const navigate = useNavigate();
-  const isAdmin = authUser?.role === "ADMIN";
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === "ADMIN";
+  const { canchas } = useCanchas({ soloActivas: false });
+
+  const canchasPorId = useMemo(() => {
+    return canchas.reduce((acc, cancha) => {
+      acc[String(cancha.id)] = cancha;
+      return acc;
+    }, {});
+  }, [canchas]);
 
   const headers = isAdmin
-    ? ["Reserva", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
-    : ["Reserva", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
+    ? ["#", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
+    : ["#", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
 
   return (
-    <div className="bg-white rounded-card shadow-card mt-10 overflow-hidden overflow-x-auto">
-      {loading && (
-        <p className="p-6 text-center text-slate-500">Cargando reservas...</p>
-      )}
+    <div className="table-card">
+      {/* Toolbar */}
+      <div className="table-toolbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--color-text-3)' }}>
+            table_rows
+          </span>
+          <span className="table-title">
+            {isAdmin ? 'Todas las reservas' : 'Mis reservas'}
+          </span>
+        </div>
+        {!loading && !error && (
+          <span className="table-count">{reservas.length} registros</span>
+        )}
+      </div>
 
-      {error && (
-        <p className="p-6 text-center text-red-500">{error}</p>
-      )}
-
-      {!loading && !error && reservas.length === 0 && (
-        <p className="p-6 text-center text-slate-500">
-          No hay reservas registradas.
-        </p>
-      )}
-
-      {!loading && !error && reservas.length > 0 && (
-        <table className="w-full">
-          <thead className="bg-primaryDeg text-slate-600 uppercase text-xs">
+      <div className="table-scroll">
+        <table className="reservas">
+          <thead>
             <tr>
-              {headers.map((item, index) => (
-                <th className="px-6 py-4 text-center" key={index}>
-                  {item}
-                </th>
-              ))}
+              {headers.map((h) => <th key={h}>{h}</th>)}
             </tr>
           </thead>
-
           <tbody>
-            {reservas.map((reserva) => {
-              const cancha = obtenerCancha(reserva.idCancha, canchas);
+            {loading && Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonRow key={i} cols={headers.length} />
+            ))}
+
+            {!loading && error && (
+              <tr>
+                <td colSpan={headers.length}>
+                  <div className="error-state">
+                    <div className="error-state-icon" style={{ color: 'var(--color-cancelled)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 28 }}>error_outline</span>
+                    </div>
+                    <p className="error-state-title">Error al cargar</p>
+                    <p className="error-state-sub">{error}</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {!loading && !error && reservas.length === 0 && (
+              <tr>
+                <td colSpan={headers.length}>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--color-text-3)' }}>
+                        event_busy
+                      </span>
+                    </div>
+                    <p className="empty-state-title">Sin reservas</p>
+                    <p className="empty-state-sub">No hay reservas registradas aún.</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {!loading && !error && reservas.map((reserva) => {
+              const canEdit = user?.role === "ADMIN" || user?.id === reserva.idUsuario;
+              const userInitials = typeof reserva.idUsuario === 'string'
+                ? reserva.idUsuario.slice(0, 2).toUpperCase()
+                : '?';
+              const cancha = canchasPorId[String(reserva.idCancha)];
 
               return (
-                <tr
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-                  key={reserva.id}
-                >
-                  <td className="px-6 py-4 text-center">
-                    <span className="font-semibold text-slate-800">
-                      #{reserva.id}
-                    </span>
+                <tr key={reserva.id}>
+                  {/* ID */}
+                  <td>
+                    <span className="reserva-id">#{reserva.id}</span>
                   </td>
 
+                  {/* Usuario (admin only) */}
                   {isAdmin && (
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm">
-                        {formatearUsuario(reserva.idUsuario, authUser)}
-                      </span>
+                    <td>
+                      <div className="user-pill">
+                        <div className="user-pill-avatar">{userInitials}</div>
+                        {formatearUsuario(reserva.idUsuario, user)}
+                      </div>
                     </td>
                   )}
 
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="font-medium text-slate-800">
-                        {cancha?.nombre || `Cancha ${reserva.idCancha}`}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {cancha?.tipo || `ID ${reserva.idCancha}`}
-                      </span>
-                    </div>
+                  {/* Cancha */}
+                  <td>
+                    <p className="cancha-name">{cancha?.nombre || `Cancha ${reserva.idCancha}`}</p>
+                    <p className="cancha-sub">
+                      {cancha ? `${cancha.tipo} · ID ${cancha.id}` : `ID ${reserva.idCancha}`}
+                    </p>
                   </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-slate-700">
-                      {formatearFecha(reserva.fecha)}
+                  {/* Fecha */}
+                  <td style={{ color: 'var(--color-text-2)', fontSize: 13 }}>
+                    {formatearFecha(reserva.fecha)}
+                  </td>
+
+                  {/* Horario */}
+                  <td>
+                    <span className="horario">
+                      {formatearHora(reserva.horaInicio)} – {formatearHora(reserva.horaFin)}
                     </span>
                   </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <span className="bg-slate-100 rounded-xl px-3 py-1 text-sm text-slate-700">
-                      {formatearHora(reserva.horaInicio)} - {formatearHora(reserva.horaFin)}
-                    </span>
+                  {/* Estado */}
+                  <td>
+                    <StatusBadge status={reserva.estado} />
                   </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <StatusBadges status={reserva.estado} />
-                  </td>
-
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex gap-2 justify-center">
-                      <BtnAccion
-                        icono="edit"
-                        className="hover:text-primary"
-                        accion={() => navigate(`/dashboard/reservas/${reserva.id}/editar`)}
-                      />
-                      <BtnAccion
-                        icono="delete"
-                        className="hover:text-red-500"
-                        accion={() => navigate(`/dashboard/reservas/${reserva.id}/eliminar`)}
-                      />
+                  {/* Acciones */}
+                  <td>
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-start' }}>
+                      {canEdit && (
+                        <>
+                          <button
+                            className="action-btn"
+                            onClick={() => navigate(`/dashboard/reservas/${reserva.id}/editar`)}
+                            title="Editar"
+                            aria-label="Editar reserva"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
+                          </button>
+                          {isAdmin && (
+                            <button
+                              className="action-btn danger"
+                              onClick={() => navigate(`/dashboard/reservas/${reserva.id}/eliminar`)}
+                              title="Eliminar"
+                              aria-label="Eliminar reserva"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -146,7 +205,7 @@ function TablaReservas({
             })}
           </tbody>
         </table>
-      )}
+      </div>
     </div>
   );
 }

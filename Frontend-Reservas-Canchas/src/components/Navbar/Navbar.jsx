@@ -1,114 +1,177 @@
-import { useNavigate } from "react-router-dom";
-import LinkNav from "./LinkNav";
-import Icon from "../../ui/Icon";
-import UserAvatar from "./UserAvatar";
-import { useState } from "react";
-import authServices from "../../services/authServices";
-import { getAuthUser } from "../../utils/auth";
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import useAuthStore from '@/app/store/authStore';
+
+function normalizeRole(value) {
+  return String(value || '').trim().toUpperCase();
+}
 
 function Navbar() {
   const navigate = useNavigate();
-  const { logout } = authServices();
-  const authUser = getAuthUser();
+  const location = useLocation();
+  const { user, logout } = useAuthStore();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const itemNavBase = [
-    { name: "Dashboard", accion: () => navigate("/dashboard") },
-    { name: "Reservas", accion: () => navigate("/dashboard") },
-  ];
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+    }
 
-  const itemNavAdmin = [
-    { name: "Canchas", accion: () => navigate("/dashboard/canchas") },
-  ];
+    document.addEventListener('mousedown', handleClickOutside);
 
-  const itemNav =
-    authUser?.role === "ADMIN"
-      ? [...itemNavBase, ...itemNavAdmin]
-      : itemNavBase;
-
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState(false);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate('/login');
   }
 
+  const role = normalizeRole(user?.role);
+  const isAdmin = role === 'ADMIN' || role.includes('ADMIN');
+  const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
+
+  const navLinks = [
+    { label: 'Reservas', path: '/dashboard' },
+    { label: 'Pagos', path: '/dashboard/pagos' },
+    ...(isAdmin
+      ? [
+          { label: 'Canchas', path: '/dashboard/canchas' },
+          { label: 'Usuarios', path: '/dashboard/usuarios' },
+        ]
+      : []),
+  ];
+
+  const isActive = (path) =>
+    path === '/dashboard'
+      ? location.pathname === '/dashboard'
+      : location.pathname.startsWith(path);
+
   return (
-    <header className="w-full bg-white shadow-card h-15">
-      <div className="h-full max-w-7xl m-auto flex justify-between items-center px-4">
-        <div
-          className={`flex items-center transition-all duration-300 md:flex-1 sm:flex-1 ${
-            search ? "w-0 overflow-hidden" : ""
-          }`}
+    <header className="nav-root">
+      <div className="nav-inner">
+        <button
+          className="nav-brand"
+          onClick={() => navigate('/dashboard')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          <Icon
-            name="sports_soccer"
-            className="text-primary cursor-pointer"
-            accion={() => navigate("/dashboard")}
-          />
-          <p className="font-bold uppercase">
-            Soccerfield <span className="text-primary">manager</span>
-          </p>
-        </div>
+          <div className="nav-brand-icon">
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>sports_soccer</span>
+          </div>
+          <span className="nav-brand-name">Soccer<span>Field</span></span>
+        </button>
 
-        <nav
-          className={`bg-primaryDeg flex flex-col justify-evenly items-center absolute right-3 top-15 w-52 min-h-48 shadow-card rounded-card transition-all duration-300
-          md:flex-row md:justify-evenly md:opacity-100 md:static md:w-auto md:bg-white md:shadow-none md:rounded-none md:flex-2 md:h-full
-          ${open ? "opacity-100 translate-0 z-50" : "-translate-y-5 opacity-0 md:translate-none"}`}
-        >
-          {itemNav.map((item, indice) => (
-            <LinkNav
-              key={indice}
-              texto={item.name}
-              enlace="#"
-              accion={(e) => {
-                e.preventDefault();
-                item.accion();
+        <nav className={`nav-links ${mobileOpen ? 'open' : ''}`}>
+          {navLinks.map((link) => (
+            <button
+              key={link.label}
+              className={`nav-link ${isActive(link.path) ? 'active' : ''}`}
+              onClick={() => {
+                navigate(link.path);
+                setMobileOpen(false);
               }}
-            />
+            >
+              {link.label}
+            </button>
           ))}
-
-          <LinkNav
-            texto="Cerrar sesión"
-            enlace="#"
-            accion={(e) => {
-              e.preventDefault();
-              handleLogout();
-            }}
-          />
         </nav>
 
-        <div className="flex justify-end gap-3 relative overflow-hidden flex-2 sm:flex-1 items-center">
-          {authUser?.role && (
-            <span className="hidden md:inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold">
-              {authUser.role}
+        <div className="nav-end">
+          {user?.role && (
+            <span className={`role-badge ${isAdmin ? 'admin' : 'user'}`}>
+              {isAdmin ? 'Admin' : 'Usuario'}
             </span>
           )}
 
-          {authUser?.email && (
-            <span className="hidden lg:inline-block text-sm text-slate-500 max-w-48 truncate">
-              {authUser.email}
-            </span>
-          )}
+          <div className="dropdown" ref={dropdownRef}>
+            <button
+              className="avatar-btn"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-label="Menú de usuario"
+            >
+              {initials}
+            </button>
 
-          <div
-            className={`bg-primaryDeg rounded-lg px-2 flex items-center overflow-hidden transition-all duration-400 md:flex-1 sm:flex-1 sm:w-auto ${
-              search ? "flex-1" : "w-10"
-            }`}
-          >
-            <Icon
-              accion={() => setSearch(!search)}
-              name="search"
-              className="text-primary cursor-pointer"
-            />
-            <input
-              type="search"
-              placeholder="Buscar..."
-              className="placeholder:text-slate-400 rounded-radius-card outline-0 px-2 py-1"
-            />
+            {dropdownOpen && (
+              <div className="dropdown-menu">
+                <div className="dropdown-header">
+                  <p className="dropdown-email">{user?.email}</p>
+                  <p className="dropdown-role">{isAdmin ? 'Administrador' : 'Usuario'}</p>
+                </div>
+
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    navigate('/dashboard');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>grid_view</span>
+                  Dashboard
+                </button>
+
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    navigate('/dashboard/pagos');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>payments</span>
+                  Pagos
+                </button>
+
+                {isAdmin && (
+                  <>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/dashboard/canchas');
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>stadium</span>
+                      Canchas
+                    </button>
+
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/dashboard/usuarios');
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>group</span>
+                      Usuarios
+                    </button>
+                  </>
+                )}
+
+                <button
+                  className="dropdown-item danger"
+                  onClick={() => {
+                    handleLogout();
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>logout</span>
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
           </div>
 
-          <UserAvatar accion={() => setOpen(!open)} />
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Menú"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+              {mobileOpen ? 'close' : 'menu'}
+            </span>
+          </button>
         </div>
       </div>
     </header>

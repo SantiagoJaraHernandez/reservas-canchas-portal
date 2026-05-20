@@ -1,70 +1,47 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import MainLayout from "./components/Main/MainLayout";
-import Reservations from "./pages/Reservations";
-import ReservationCrud from "./pages/ReservationCrud";
-import Canchas from "./pages/Canchas";
-import CanchaCrud from "./pages/CanchaCrud";
-import PageAuth from "./pages/PageAuth";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
+
+import ProtectedRoute from "@/core/guards/ProtectedRoute";
+import RoleGuard from "@/core/guards/RoleGuard";
+
+import MainLayout from "@/components/Main/MainLayout";
+import PageAuth from "@/pages/PageAuth";
+import Reservations from "@/pages/Reservations";
+import ReservationCrud from "@/pages/ReservationCrud";
+import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import AdminCanchas from "@/pages/AdminCanchas";
+import AdminUsuarios from "@/pages/AdminUsuarios";
+import Pagos from "@/pages/Pagos";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
+      <Toaster position="top-right" richColors closeButton duration={4000} />
+
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/register" element={<PageAuth modo="register" />} />
+
         <Route path="/login" element={<PageAuth modo="login" />} />
+        <Route path="/register" element={<PageAuth modo="register" />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Reservations />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<MainLayout />}>
+            <Route index element={<Reservations />} />
 
-          <Route path="reservas/nueva" element={<ReservationCrud modo="crear" />} />
-          <Route path="reservas/:id/editar" element={<ReservationCrud modo="actualizar" />} />
-          <Route path="reservas/:id/eliminar" element={<ReservationCrud modo="eliminar" />} />
+            <Route path="reservas/nueva" element={<RoleGuard allowedRoles={["ADMIN", "USER"]}><ReservationCrud modo="crear" /></RoleGuard>} />
+            <Route path="reservas/:id/editar" element={<RoleGuard allowedRoles={["ADMIN"]}><ReservationCrud modo="actualizar" /></RoleGuard>} />
+            <Route path="reservas/:id/eliminar" element={<RoleGuard allowedRoles={["ADMIN"]}><ReservationCrud modo="eliminar" /></RoleGuard>} />
 
-          <Route
-            path="canchas"
-            element={
-              <AdminRoute>
-                <Canchas />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="canchas/nueva"
-            element={
-              <AdminRoute>
-                <CanchaCrud modo="crear" />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="canchas/:id/editar"
-            element={
-              <AdminRoute>
-                <CanchaCrud modo="actualizar" />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="canchas/:id/eliminar"
-            element={
-              <AdminRoute>
-                <CanchaCrud modo="eliminar" />
-              </AdminRoute>
-            }
-          />
+            <Route path="pagos" element={<RoleGuard allowedRoles={["ADMIN", "USER"]}><Pagos /></RoleGuard>} />
+            <Route path="canchas" element={<RoleGuard allowedRoles={["ADMIN"]}><AdminCanchas /></RoleGuard>} />
+            <Route path="usuarios" element={<RoleGuard allowedRoles={["ADMIN"]}><AdminUsuarios /></RoleGuard>} />
+          </Route>
         </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

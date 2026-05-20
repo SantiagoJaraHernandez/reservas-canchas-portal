@@ -30,6 +30,7 @@ function FormAuth({ title, subTtitle, fields, terms, className = "", textButton,
                             type={input.type}
                             onChange={(e) => onChange(input.name, e.target.value)}
                             styleContentInput={`${heyError ? "outline-2 outline-yellow-500" : "outline-0.5 outline-primary"}`}
+                            styleLabel="text-white"
                         />
                         {heyError && (
                             <FieldError className="text-yellow-500 font-bold" error={errors[input.name]} />
@@ -37,7 +38,6 @@ function FormAuth({ title, subTtitle, fields, terms, className = "", textButton,
                     </>
                 ))}
                 <div className="flex text-[12px] py-2 gap-2">
-                    <input type="checkbox" name="" id="" className="cursor-pointer" />
                     {terms === "register" && (
                         <p className="text-slate-50">Acepto los <span className="text-primary font-bold border-b cursor-pointer"> Términos de Servicio</span>y la <span className="text-primary font-bold border-b cursor-pointer"> Política de Privacidad</span> e SoccerField Manager.</p>
                     )}
