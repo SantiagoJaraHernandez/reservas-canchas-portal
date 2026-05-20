@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 
-import AuthGuard from "@/core/guards/AuthGuard";
+import ProtectedRoute from "@/core/guards/ProtectedRoute";
 import RoleGuard from "@/core/guards/RoleGuard";
 
 import MainLayout from "@/components/Main/MainLayout";
@@ -22,20 +22,36 @@ function App() {
         <Route path="/register" element={<PageAuth modo="register" />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-        {/* 🔐 PROTEGIDO */}
-        <Route element={<AuthGuard />}>
+        <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<MainLayout />}>
-            
-            {/* TODOS LOS USUARIOS */}
             <Route index element={<Reservations />} />
 
-            {/* USER + ADMIN */}
-            <Route element={<RoleGuard allowedRoles={["USER", "ADMIN"]} />}>
-              <Route path="reservas/nueva" element={<ReservationCrud modo="crear" />} />
-              <Route path="reservas/:id/editar" element={<ReservationCrud modo="actualizar" />} />
-              <Route path="reservas/:id/eliminar" element={<ReservationCrud modo="eliminar" />} />
-            </Route>
+            <Route
+              path="reservas/nueva"
+              element={
+                <RoleGuard allowedRoles={["ADMIN", "USER"]}>
+                  <ReservationCrud modo="crear" />
+                </RoleGuard>
+              }
+            />
 
+            <Route
+              path="reservas/:id/editar"
+              element={
+                <RoleGuard allowedRoles={["ADMIN"]}>
+                  <ReservationCrud modo="actualizar" />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path="reservas/:id/eliminar"
+              element={
+                <RoleGuard allowedRoles={["ADMIN"]}>
+                  <ReservationCrud modo="eliminar" />
+                </RoleGuard>
+              }
+            />
           </Route>
         </Route>
 

@@ -1,14 +1,14 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { useEffect } from "react";
 import useAuthStore from "@/app/store/authStore";
 
-function AuthGuard() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+function AuthGuard({ children }) {
+  const hydrate = useAuthStore((state) => state.hydrate);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    hydrate();
+  }, []);
 
-  return <Outlet />;
+  return children;
 }
 
 export default AuthGuard;

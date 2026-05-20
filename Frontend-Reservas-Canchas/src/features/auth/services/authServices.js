@@ -1,13 +1,9 @@
-import authClient from '@/core/api/authClient';
+import { api } from "@/core/api/api";
 
 export const authService = {
-  login: async (credentials) => {
-    const { data } = await authClient.post('/auth/login', credentials);
-    return data;
-  },
+  login: (credentials) =>
+    api.postAuth("/auth/login", credentials),
 
-  register: async (payload) => {
-    const { data } = await authClient.post('/auth/register', payload);
-    return data;
-  },
+  register: (payload) =>
+    api.postAuth("/auth/register", payload),
 };

@@ -2,6 +2,9 @@ import { useNavigate } from "react-router-dom";
 import StatusBadges from "./StatusBadges";
 import BtnAccion from "../Botones/ButtonAccion";
 import useAuthStore from "@/app/store/authStore";
+import SkeletonTable from "@/components/ui/SkeletonTable";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
 function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";
@@ -44,113 +47,105 @@ function TablaReservas({
   authUser,
 }) {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user); // ✅ BIEN UBICADO
-  const isAdmin = authUser?.role === "ADMIN";
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === "ADMIN";
 
   const headers = isAdmin
     ? ["Reserva", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
     : ["Reserva", "Cancha", "Fecha", "Horario", "Estado", "Acciones"];
 
+  if (loading) return <SkeletonTable />;
+
+  if (error) return <ErrorState message={error} />;
+
+  if (!reservas.length) {
+    return <EmptyState message="No hay reservas registradas" />;
+  }
+
   return (
-    <div className="bg-white rounded-card shadow-card mt-10 overflow-hidden overflow-x-auto">
-      {loading && (
-        <p className="p-6 text-center text-slate-500">Cargando reservas...</p>
-      )}
+    <div className="bg-white rounded-2xl shadow-sm mt-10 overflow-hidden border border-slate-200">
+      <table className="w-full">
+        <thead className="bg-primaryDeg  text-slate-500 text-xs uppercase tracking-wider">
+          <tr>
+            {headers.map((item, index) => (
+              <th className="px-6 py-4 text-center" key={index}>
+                {item}
+              </th>
+            ))}
+          </tr>
+        </thead>
 
-      {error && (
-        <p className="p-6 text-center text-red-500">{error}</p>
-      )}
+        <tbody>
+          {reservas.map((reserva) => {
+            const cancha = obtenerCancha(reserva.idCancha, canchas);
 
-      {!loading && !error && reservas.length === 0 && (
-        <p className="p-6 text-center text-slate-500">
-          No hay reservas registradas.
-        </p>
-      )}
+            return (
+              <tr
+                key={reserva.id}
+                className="border-b border-slate-200 hover:bg-slate-50 transition duration-200"
+              >
+                <td className="px-6 py-4 text-center font-semibold">
+                  #{reserva.id}
+                </td>
 
-      {!loading && !error && reservas.length > 0 && (
-        <table className="w-full">
-          <thead className="bg-primaryDeg text-slate-600 uppercase text-xs">
-            <tr>
-              {headers.map((item, index) => (
-                <th className="px-6 py-4 text-center" key={index}>
-                  {item}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {reservas.map((reserva) => {
-              const cancha = obtenerCancha(reserva.idCancha, canchas);
-
-              return (
-                <tr
-                  key={reserva.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-                >
+                {isAdmin && (
                   <td className="px-6 py-4 text-center">
-                    <span className="font-semibold text-slate-800">
-                      #{reserva.id}
+                    <span className="bg-slate-100 px-3 py-1 rounded-full text-sm">
+                      {formatearUsuario(reserva.idUsuario, user)}
                     </span>
                   </td>
+                )}
 
-                  {isAdmin && (
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-block bg-slate-100 px-3 py-1 rounded-full text-sm">
-                        {formatearUsuario(reserva.idUsuario, authUser)}
-                      </span>
-                    </td>
-                  )}
+                <td className="px-6 py-4 text-center">
+                  <div className="flex flex-col items-center">
+                    <span className="font-medium">
+                      {cancha?.nombre || `Cancha ${reserva.idCancha}`}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {cancha?.tipo || `ID ${reserva.idCancha}`}
+                    </span>
+                  </div>
+                </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="font-medium text-slate-800">
-                        {cancha?.nombre || `Cancha ${reserva.idCancha}`}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {cancha?.tipo || `ID ${reserva.idCancha}`}
-                      </span>
-                    </div>
-                  </td>
+                <td className="px-6 py-4 text-center">
+                  {formatearFecha(reserva.fecha)}
+                </td>
 
-                  <td className="px-6 py-4 text-center">
-                    {formatearFecha(reserva.fecha)}
-                  </td>
+                <td className="px-6 py-4 text-center">
+                  {formatearHora(reserva.horaInicio)} - {formatearHora(reserva.horaFin)}
+                </td>
 
-                  <td className="px-6 py-4 text-center">
-                    {formatearHora(reserva.horaInicio)} - {formatearHora(reserva.horaFin)}
-                  </td>
+                <td className="px-6 py-4 text-center">
+                  <StatusBadges status={reserva.estado} />
+                </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <StatusBadges status={reserva.estado} />
-                  </td>
-
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex gap-2 justify-center">
-                      {(user?.role === "ADMIN" || user?.id === reserva.idUsuario) && (
-                        <>
-                          <BtnAccion
-                            icono="edit"
-                            accion={() =>
-                              navigate(`/dashboard/reservas/${reserva.id}/editar`)
-                            }
-                          />
-                          <BtnAccion
-                            icono="delete"
-                            accion={() =>
-                              navigate(`/dashboard/reservas/${reserva.id}/eliminar`)
-                            }
-                          />
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+                <td className="px-6 py-4 text-center">
+                  <div className="flex gap-2 justify-center">
+                    {(user?.role === "ADMIN" || user?.id === reserva.idUsuario) && (
+                      <>
+                        <BtnAccion
+                        className="hover:scale-105 active:scale-95 transition-transform duration-150 hover:bg-primaryDeg rounded-full h-12 w-12 flex items-center justify-center p-2"
+                          icono="edit"
+                          accion={() =>
+                            navigate(`/dashboard/reservas/${reserva.id}/editar`)
+                          }
+                        />
+                        <BtnAccion
+                         className="hover:scale-105 active:scale-95 transition-transform duration-150 hover:bg-primaryDeg rounded-full h-12 w-12 flex items-center justify-center p-2"
+                          icono="delete"
+                          accion={() =>
+                            navigate(`/dashboard/reservas/${reserva.id}/eliminar`)
+                          }
+                        />
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -13,14 +13,21 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
 
-      const data = await authService.login(credentials);
+      const response = await authService.login(credentials);
 
-      loginStore(data);
+      const token = response?.token;
 
-      return data;
+      if (!token) {
+        console.error("Respuesta backend:", response);
+        throw new Error("Token no recibido");
+      }
+
+      loginStore(token);
+
+      return { ok: true };
     } catch (err) {
       setError(err);
-      throw err;
+      return { ok: false, message: err };
     } finally {
       setLoading(false);
     }
@@ -31,11 +38,12 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
 
-      const data = await authService.register(payload);
-      return data;
+      await authService.register(payload);
+
+      return { ok: true };
     } catch (err) {
       setError(err);
-      throw err;
+      return { ok: false, message: err.message };
     } finally {
       setLoading(false);
     }
