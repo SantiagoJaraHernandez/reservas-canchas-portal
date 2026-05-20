@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "@/app/store/authStore";
+import { useMemo } from "react";
+import { useCanchas } from "@/features/canchas/hooks/useCanchas";
 
 function formatearFecha(fecha) {
   if (!fecha) return "—";
@@ -50,6 +52,14 @@ function TablaReservas({ reservas = [], loading, error, authUser }) {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === "ADMIN";
+  const { canchas } = useCanchas({ soloActivas: false });
+
+  const canchasPorId = useMemo(() => {
+    return canchas.reduce((acc, cancha) => {
+      acc[String(cancha.id)] = cancha;
+      return acc;
+    }, {});
+  }, [canchas]);
 
   const headers = isAdmin
     ? ["#", "Usuario", "Cancha", "Fecha", "Horario", "Estado", "Acciones"]
@@ -119,6 +129,7 @@ function TablaReservas({ reservas = [], loading, error, authUser }) {
               const userInitials = typeof reserva.idUsuario === 'string'
                 ? reserva.idUsuario.slice(0, 2).toUpperCase()
                 : '?';
+              const cancha = canchasPorId[String(reserva.idCancha)];
 
               return (
                 <tr key={reserva.id}>
@@ -139,8 +150,10 @@ function TablaReservas({ reservas = [], loading, error, authUser }) {
 
                   {/* Cancha */}
                   <td>
-                    <p className="cancha-name">Cancha {reserva.idCancha}</p>
-                    <p className="cancha-sub">ID {reserva.idCancha}</p>
+                    <p className="cancha-name">{cancha?.nombre || `Cancha ${reserva.idCancha}`}</p>
+                    <p className="cancha-sub">
+                      {cancha ? `${cancha.tipo} · ID ${cancha.id}` : `ID ${reserva.idCancha}`}
+                    </p>
                   </td>
 
                   {/* Fecha */}

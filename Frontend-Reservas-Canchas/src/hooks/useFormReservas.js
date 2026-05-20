@@ -27,6 +27,7 @@ export function useFormReservas(reserva, onSubmitReserva) {
 
         const ocupados = data.filter(
           (r) =>
+            r.id !== formData.id &&
             r.idCancha === Number(formData.idCancha) &&
             r.fecha === formData.fecha
         );
