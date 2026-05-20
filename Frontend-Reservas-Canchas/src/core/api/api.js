@@ -24,8 +24,7 @@ export const api = {
   get: (url) => handle(axiosClient.get(url)),
   post: (url, payload) => handle(axiosClient.post(url, payload)),
   put: (url, payload) => handle(axiosClient.put(url, payload)),
+  patch: (url, payload) => handle(axiosClient.patch(url, payload)),
   delete: (url) => handle(axiosClient.delete(url)),
-
-  // Auth también debe pasar por el Gateway: /auth/login y /auth/register
   postAuth: (url, payload) => handle(axiosClient.post(url, payload)),
 };
