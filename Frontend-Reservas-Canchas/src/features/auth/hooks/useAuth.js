@@ -26,8 +26,9 @@ export const useAuth = () => {
 
       return { ok: true };
     } catch (err) {
-      setError(err);
-      return { ok: false, message: err };
+      const message = err?.message || "Error inesperado al iniciar sesión";
+      setError(message);
+      return { ok: false, message };
     } finally {
       setLoading(false);
     }
@@ -42,8 +43,9 @@ export const useAuth = () => {
 
       return { ok: true };
     } catch (err) {
-      setError(err);
-      return { ok: false, message: err.message };
+      const message = err?.message || "Error inesperado al registrar usuario";
+      setError(message);
+      return { ok: false, message };
     } finally {
       setLoading(false);
     }

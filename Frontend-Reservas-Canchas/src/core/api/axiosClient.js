@@ -6,15 +6,19 @@ export const setLogoutHandler = (callback) => {
   onLogout = callback;
 };
 
+const API_URL =
+  window.APP_CONFIG?.API_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:8002";
+
 const axiosClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: API_URL,
 });
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
-  
-  if (token && !config.url.includes("/auth")) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -28,12 +32,7 @@ axiosClient.interceptors.response.use(
       onLogout();
     }
 
-    const message =
-      error?.response?.data?.message ||
-      error?.message ||
-      "Error inesperado";
-
-    return Promise.reject(message);
+    return Promise.reject(error);
   }
 );
 
