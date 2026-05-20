@@ -1,12 +1,12 @@
 import { useState } from "react";
-import authServices from "../../services/authServices";
+import { authServices } from "@/features/auth/services/authServices";
 
 function useRegister() {
     const [users, setUsers] = useState([]);
     const [errorsApi, setErrorsApi] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const { register } = authServices();
+    const { register } = authServices;
 
     async function registerUser(newUser) {
         try {
@@ -16,7 +16,7 @@ function useRegister() {
             console.log(user)
             return { ok: true }
         } catch (error) {
-            console.error("error register", error.response?.data);
+            console.error("error register", error.response);
             setErrorsApi(error);
             return { ok: false, mensaje: error.response?.data || "Error in the registration" };
         } finally {

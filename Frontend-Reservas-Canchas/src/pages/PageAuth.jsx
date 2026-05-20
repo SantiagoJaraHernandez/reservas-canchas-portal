@@ -1,96 +1,100 @@
-import FormAuth from "../components/FormAuth/FormAuth";
-import { inputAuth } from "../utils/FormInputAut";
-import { useNavigate } from "react-router-dom";
-import useFormRegister from "../hooks/useRegister/useFormRegister";
-import useFormLogin from "../hooks/useLogin/useFormLogin";
-import ModalConfirmacion from "../components/modales/ModalConfimation";
-import useLogin from "../hooks/useLogin/useLogin";
-import useRegister from "../hooks/useRegister/useRegister";
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import FormAuth from '../components/FormAuth/FormAuth';
+import { inputAuth } from '../utils/FormInputAut';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 function PageAuth({ modo }) {
   const navigate = useNavigate();
-  const { registerUser } = useRegister();
-  const { useLoginUser } = useLogin();
 
+  const { login, register, loading, error } = useAuth();
+
+  
   const {
-    handleChange,
-    handleSubmit,
-    sending,
-    heyErrors,
-    errors,
-  } = useFormRegister(registerUser);
+    handleSubmit: handleRegisterSubmit,
+    formState: { errors: registerErrors },
+    setValue: setRegisterValue,
+  } = useForm({
+    defaultValues: { nombre: '', email: '', password: '' },
+  });
 
+  
   const {
-    handleChangeLogin,
-    handleSubmitLogin,
-    sendingLogin,
-    errorsLogin,
-    heyErrosLogin,
-  } = useFormLogin(useLoginUser);
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors },
+    setValue: setLoginValue,
+  } = useForm({
+    defaultValues: { email: '', password: '' },
+  });
 
-  async function submitFormRegister(e) {
-    e.preventDefault();
-    const resultado = await handleSubmit(e);
-    if (resultado.ok) {
-      navigate("/login");
+  async function onRegister(data) {
+    try {
+      await register(data);
+      navigate('/login');
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  async function submitFormLogin(e) {
-    e.preventDefault();
-    const response = await handleSubmitLogin(e);
-    if (response.ok) {
-      navigate("/dashboard");
+  async function onLogin(data) {
+    try {
+      await login(data);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
     }
   }
+
+  // HANDLERS
+  function handleRegisterChange(campo, valor) {
+    setRegisterValue(campo, valor, { shouldValidate: true });
+  }
+
+  function handleLoginChange(campo, valor) {
+    setLoginValue(campo, valor, { shouldValidate: true });
+  }
+
+  const hasRegisterErrors = Object.keys(registerErrors).length > 0;
+  const hasLoginErrors = Object.keys(loginErrors).length > 0;
 
   return (
     <div className="min-h-screen bg-app flex items-center justify-center py-8 px-2 relative bg-[url('/src/assets/soccer-stadium-night.jpg')] bg-cover bg-center">
-      <div className="fixed inset-0 bg-black/70"></div>
+      <div className="fixed inset-0 bg-black/70" />
 
       <div className="flex items-center justify-center z-10">
-        {modo === "register" && (
+        {modo === 'register' && (
           <FormAuth
             title="Crear cuenta"
             subTtitle="Únete a la mayor comunidad de FútbolReserva"
             terms="register"
-            heyError={heyErrors}
-            errors={errors}
-            onChange={handleChange}
+            heyError={hasRegisterErrors}
+            errors={registerErrors}
+            onChange={handleRegisterChange}
             icono="sports_soccer"
-            onSubmitAuth={submitFormRegister}
+            onSubmitAuth={handleRegisterSubmit(onRegister)}
             fields={inputAuth[0]}
-            textButton="Registrarse"
-            actionLink={() => navigate("/login")}
+            textButton={loading ? 'Registrando...' : 'Registrarse'}
+            actionLink={() => navigate('/login')}
             className="bg-white/30 backdrop-blur-sm"
           />
         )}
 
-        {modo === "login" && (
+        {modo === 'login' && (
           <FormAuth
             title="FútbolReserva"
             subTtitle="Gestiona tus canchas con SoccerField Manager"
             fields={inputAuth[1]}
-            textButton="Iniciar Sesión"
+            textButton={loading ? 'Ingresando...' : 'Iniciar Sesión'}
             className="bg-white/30 backdrop-blur-sm"
             terms="login"
-            heyError={heyErrosLogin}
-            errors={errorsLogin}
-            onChange={handleChangeLogin}
-            onSubmitAuth={submitFormLogin}
-            actionLink={() => navigate("/register")}
+            heyError={hasLoginErrors}
+            errors={loginErrors}
+            onChange={handleLoginChange}
+            onSubmitAuth={handleLoginSubmit(onLogin)}
+            actionLink={() => navigate('/register')}
           />
         )}
       </div>
-
-      {heyErrosLogin && (
-        <ModalConfirmacion
-          icono="warning"
-          title="Error de autenticación"
-          subTitle={errorsLogin?.mensaje || "Verifica tus credenciales e inténtalo de nuevo"}
-          open={heyErrosLogin}
-        />
-      )}
     </div>
   );
 }
