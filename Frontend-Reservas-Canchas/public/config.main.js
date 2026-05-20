@@ -1,4 +1,4 @@
 window.APP_CONFIG = {
-  ENV: "main",
-  API_URL: "http://localhost:8000"
+  API_URL: "/api",
+  ENV: "main"
 };

@@ -9,7 +9,7 @@ export const setLogoutHandler = (callback) => {
 const API_URL =
   window.APP_CONFIG?.API_URL ||
   import.meta.env.VITE_API_URL ||
-  "http://localhost:8002";
+  "/api";
 
 const axiosClient = axios.create({
   baseURL: API_URL,
