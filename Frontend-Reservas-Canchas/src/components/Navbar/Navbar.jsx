@@ -2,6 +2,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import useAuthStore from '@/app/store/authStore';
 
+function normalizeRole(value) {
+  return String(value || '').trim().toUpperCase();
+}
+
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,11 +16,11 @@ function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
     }
+
     document.addEventListener('mousedown', handleClickOutside);
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
@@ -25,18 +29,29 @@ function Navbar() {
     navigate('/login');
   }
 
+  const role = normalizeRole(user?.role);
+  const isAdmin = role === 'ADMIN' || role.includes('ADMIN');
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
-  const isAdmin = user?.role === 'ADMIN';
 
   const navLinks = [
-    { label: 'Dashboard', path: '/dashboard', icon: 'grid_view' },
-    { label: 'Reservas', path: '/dashboard', icon: 'event_available' },
+    { label: 'Reservas', path: '/dashboard' },
+    { label: 'Pagos', path: '/dashboard/pagos' },
+    ...(isAdmin
+      ? [
+          { label: 'Canchas', path: '/dashboard/canchas' },
+          { label: 'Usuarios', path: '/dashboard/usuarios' },
+        ]
+      : []),
   ];
+
+  const isActive = (path) =>
+    path === '/dashboard'
+      ? location.pathname === '/dashboard'
+      : location.pathname.startsWith(path);
 
   return (
     <header className="nav-root">
       <div className="nav-inner">
-        {/* Brand */}
         <button
           className="nav-brand"
           onClick={() => navigate('/dashboard')}
@@ -45,34 +60,31 @@ function Navbar() {
           <div className="nav-brand-icon">
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>sports_soccer</span>
           </div>
-          <span className="nav-brand-name">
-            Soccer<span>Field</span>
-          </span>
+          <span className="nav-brand-name">Soccer<span>Field</span></span>
         </button>
 
-        {/* Desktop Nav Links */}
         <nav className={`nav-links ${mobileOpen ? 'open' : ''}`}>
           {navLinks.map((link) => (
             <button
               key={link.label}
-              className={`nav-link ${location.pathname === link.path ? 'active' : ''}`}
-              onClick={() => { navigate(link.path); setMobileOpen(false); }}
+              className={`nav-link ${isActive(link.path) ? 'active' : ''}`}
+              onClick={() => {
+                navigate(link.path);
+                setMobileOpen(false);
+              }}
             >
               {link.label}
             </button>
           ))}
         </nav>
 
-        {/* Right side */}
         <div className="nav-end">
-          {/* Role badge */}
           {user?.role && (
             <span className={`role-badge ${isAdmin ? 'admin' : 'user'}`}>
               {isAdmin ? 'Admin' : 'Usuario'}
             </span>
           )}
 
-          {/* Avatar + Dropdown */}
           <div className="dropdown" ref={dropdownRef}>
             <button
               className="avatar-btn"
@@ -88,16 +100,61 @@ function Navbar() {
                   <p className="dropdown-email">{user?.email}</p>
                   <p className="dropdown-role">{isAdmin ? 'Administrador' : 'Usuario'}</p>
                 </div>
+
                 <button
                   className="dropdown-item"
-                  onClick={() => { navigate('/dashboard'); setDropdownOpen(false); }}
+                  onClick={() => {
+                    navigate('/dashboard');
+                    setDropdownOpen(false);
+                  }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>grid_view</span>
                   Dashboard
                 </button>
+
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    navigate('/dashboard/pagos');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>payments</span>
+                  Pagos
+                </button>
+
+                {isAdmin && (
+                  <>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/dashboard/canchas');
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>stadium</span>
+                      Canchas
+                    </button>
+
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/dashboard/usuarios');
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>group</span>
+                      Usuarios
+                    </button>
+                  </>
+                )}
+
                 <button
                   className="dropdown-item danger"
-                  onClick={() => { handleLogout(); setDropdownOpen(false); }}
+                  onClick={() => {
+                    handleLogout();
+                    setDropdownOpen(false);
+                  }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>logout</span>
                   Cerrar sesión
@@ -106,7 +163,6 @@ function Navbar() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
           <button
             className="mobile-menu-btn"
             onClick={() => setMobileOpen(!mobileOpen)}

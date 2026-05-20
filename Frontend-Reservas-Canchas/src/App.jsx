@@ -9,6 +9,9 @@ import PageAuth from "@/pages/PageAuth";
 import Reservations from "@/pages/Reservations";
 import ReservationCrud from "@/pages/ReservationCrud";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import AdminCanchas from "@/pages/AdminCanchas";
+import AdminUsuarios from "@/pages/AdminUsuarios";
+import Pagos from "@/pages/Pagos";
 
 function App() {
   return (
@@ -26,32 +29,13 @@ function App() {
           <Route path="/dashboard" element={<MainLayout />}>
             <Route index element={<Reservations />} />
 
-            <Route
-              path="reservas/nueva"
-              element={
-                <RoleGuard allowedRoles={["ADMIN", "USER"]}>
-                  <ReservationCrud modo="crear" />
-                </RoleGuard>
-              }
-            />
+            <Route path="reservas/nueva" element={<RoleGuard allowedRoles={["ADMIN", "USER"]}><ReservationCrud modo="crear" /></RoleGuard>} />
+            <Route path="reservas/:id/editar" element={<RoleGuard allowedRoles={["ADMIN"]}><ReservationCrud modo="actualizar" /></RoleGuard>} />
+            <Route path="reservas/:id/eliminar" element={<RoleGuard allowedRoles={["ADMIN"]}><ReservationCrud modo="eliminar" /></RoleGuard>} />
 
-            <Route
-              path="reservas/:id/editar"
-              element={
-                <RoleGuard allowedRoles={["ADMIN"]}>
-                  <ReservationCrud modo="actualizar" />
-                </RoleGuard>
-              }
-            />
-
-            <Route
-              path="reservas/:id/eliminar"
-              element={
-                <RoleGuard allowedRoles={["ADMIN"]}>
-                  <ReservationCrud modo="eliminar" />
-                </RoleGuard>
-              }
-            />
+            <Route path="pagos" element={<RoleGuard allowedRoles={["ADMIN", "USER"]}><Pagos /></RoleGuard>} />
+            <Route path="canchas" element={<RoleGuard allowedRoles={["ADMIN"]}><AdminCanchas /></RoleGuard>} />
+            <Route path="usuarios" element={<RoleGuard allowedRoles={["ADMIN"]}><AdminUsuarios /></RoleGuard>} />
           </Route>
         </Route>
 

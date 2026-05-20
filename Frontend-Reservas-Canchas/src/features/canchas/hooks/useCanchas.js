@@ -1,18 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { canchaService } from "@/features/canchas/services/canchaService";
 
-const getErrorMessage = (err, fallback) => {
-  if (typeof err === "string") return err;
+const getErrorMessage = (err, fallback) =>
+  typeof err === "string"
+    ? err
+    : err?.response?.data?.message || err?.response?.data?.error || err?.message || fallback;
 
-  return (
-    err?.response?.data?.message ||
-    err?.response?.data?.error ||
-    err?.message ||
-    fallback
-  );
-};
-
-export function useCanchas({ soloActivas = true } = {}) {
+export function useCanchas({ soloActivas = false } = {}) {
   const [canchas, setCanchas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,11 +15,7 @@ export function useCanchas({ soloActivas = true } = {}) {
     try {
       setLoading(true);
       setError("");
-
-      const data = soloActivas
-        ? await canchaService.getActivas()
-        : await canchaService.getAll();
-
+      const data = soloActivas ? await canchaService.getActivas() : await canchaService.getAll();
       setCanchas(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(getErrorMessage(err, "No se pudieron cargar las canchas"));
@@ -39,10 +29,5 @@ export function useCanchas({ soloActivas = true } = {}) {
     fetchCanchas();
   }, [fetchCanchas]);
 
-  return {
-    canchas,
-    loading,
-    error,
-    fetchCanchas,
-  };
+  return { canchas, loading, error, fetchCanchas };
 }
